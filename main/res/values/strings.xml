@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">ITISMOB-MC0</string>
+    <string name="signup_underline"><u>New to app? Signup</u></string>
+    <string name="login_underline"><u>Already have an account? Login</u></string>
+</resources>
