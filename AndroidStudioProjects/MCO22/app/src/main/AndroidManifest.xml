@@ -10,12 +10,12 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.MCO2">
+        android:theme="@style/Theme.ITISMOBMC0">
         <activity
             android:name="com.mobdeve.s17.itismob_mc0.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.MCO2">
+            android:theme="@style/Theme.ITISMOBMC0">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -26,22 +26,22 @@
         <activity
             android:name="com.mobdeve.s17.itismob_mc0.CalendarActivity"
             android:exported="false"
-            android:theme="@style/Theme.MCO2" />
+            android:theme="@style/Theme.ITISMOBMC0" />
 
         <activity
             android:name="com.mobdeve.s17.itismob_mc0.CommentActivity"
             android:exported="false"
-            android:theme="@style/Theme.MCO2" />
+            android:theme="@style/Theme.ITISMOBMC0" />
 
         <activity
             android:name="com.mobdeve.s17.itismob_mc0.EditProfileActivity"
             android:exported="false"
-            android:theme="@style/Theme.MCO2" />
+            android:theme="@style/Theme.ITISMOBMC0" />
 
         <activity
             android:name="com.mobdeve.s17.itismob_mc0.HomeActivity"
             android:exported="false"
-            android:theme="@style/Theme.MCO2"
+            android:theme="@style/Theme.ITISMOBMC0"
             android:windowSoftInputMode="adjustPan|stateHidden"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" />
 
