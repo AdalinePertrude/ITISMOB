@@ -32,18 +32,12 @@ class HomeActivity : ComponentActivity() {
         viewBinding = HomePageBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
-        val profilePage = viewBinding.profileBtnLl
         setupBackPressedHandler()
         setupSpinner()
         setupRecyclerView()
         setupSearchView()
         setupFAB()
         setupNavBar()
-
-        profilePage.setOnClickListener {
-            val intent = Intent(this, ProfileActivity::class.java)
-            startActivity(intent)
-        }
 
         viewBinding.logoIv.post {
             println("DEBUG: Logo width: ${viewBinding.logoIv.width}")
