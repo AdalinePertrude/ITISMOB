@@ -66,4 +66,9 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
     implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
     implementation("at.favre.lib:bcrypt:0.9.0")
+    implementation ("com.google.code.gson:gson:2.9.1")
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 }

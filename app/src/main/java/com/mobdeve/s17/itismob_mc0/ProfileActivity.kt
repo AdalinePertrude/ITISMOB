@@ -1,5 +1,6 @@
 package com.mobdeve.s17.itismob_mc0
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -34,16 +35,30 @@ class ProfileActivity : ComponentActivity() {
     }
 
     private fun logoutUser() {
-        // Clear SharedPreferences
+        // Show confirmation dialog
+        AlertDialog.Builder(this)
+            .setTitle("Logout")
+            .setMessage("Are you sure you want to logout?")
+            .setPositiveButton("Yes") { dialog, which ->
+                performLogout()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+
+    private fun performLogout() {
         val sp: SharedPreferences = getSharedPreferences(USER_PREFERENCE, MODE_PRIVATE)
         val editor = sp.edit()
         editor.clear()
         editor.apply()
         Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show()
 
-        // Navigate back to MainActivity
+        // Navigate to MainActivity and clear stack
         val intent = Intent(this, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()
     }
+
 }
