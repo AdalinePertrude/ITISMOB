@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RatingBar
 import android.widget.TextView
@@ -96,6 +95,7 @@ class ViewRecipeActivity : ComponentActivity() {
         }
         viewCommentsButton.setOnClickListener {
             val intent = Intent(this, CommentActivity::class.java)
+            intent.putExtra("RECIPE_ID",recipeId)
             startActivity(intent)
         }
     }

@@ -15,6 +15,7 @@ import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import at.favre.lib.crypto.bcrypt.BCrypt
+import com.google.firebase.firestore.FieldValue
 
 object PasswordHasher {
     private const val BCRYPT_COST = 12
@@ -85,17 +86,16 @@ class SignupActivity : ComponentActivity() {
 
                 // Hash password and create user
                 val hashedPassword = PasswordHasher.hashPassword(passwordText)
+                val documentReference = db.collection("users").document()
 
                 val user = hashMapOf(
+                    "id" to documentReference.id,
                     "fullname" to fullnameText,
                     "email" to emailText.lowercase(),
-                    "password" to hashedPassword
+                    "password" to hashedPassword,
+                    "createdAt" to FieldValue.serverTimestamp()
                 )
-
-                // Add user to Firestore
-                val documentReference = db.collection("users")
-                    .add(user)
-                    .await()
+                documentReference.set(user).await()
 
                 Log.d("Signup", "User created with ID: ${documentReference.id}")
 
