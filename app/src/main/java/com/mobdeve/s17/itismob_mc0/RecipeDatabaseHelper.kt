@@ -1,11 +1,15 @@
 package com.mobdeve.s17.itismob_mc0
 
+import android.util.Log
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class RecipeDatabaseHelper {
     companion object {
-        // Fetch only dishname and rating fields
         fun fetchRecipeData(onComplete: (ArrayList<RecipeModel>) -> Unit) {
             val db = Firebase.firestore
             val recipes = ArrayList<RecipeModel>()
@@ -85,5 +89,68 @@ class RecipeDatabaseHelper {
                     onComplete(null)
                 }
         }
+
+        fun fetchRecipeComments(recipeid: String, onComplete: (ArrayList<CommentModel>) -> Unit) {
+            val db = Firebase.firestore
+            val comments = ArrayList<CommentModel>()
+            val commentsCollection = db.collection("recipes")
+                .document(recipeid)
+                .collection("comments")
+                .orderBy("comment_date", Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener { documents ->
+                    for (document in documents) {
+                        val comment = CommentModel(
+                            commentor = document.getString("commentor") ?: "",
+                            comment = document.getString("comment") ?: "",
+                            commentDate = formatDate(document.getTimestamp("comment_date")?.toDate().toString()) ?: "",
+                        )
+                        comments.add(comment)
+                    }
+                    println("DEBUG: Fetched ${comments.size} comments for recipe $recipeid")
+                    onComplete(comments)
+                }
+                .addOnFailureListener { exception ->
+                    println("Error fetching comments: ${exception.message}")
+                    onComplete(ArrayList()) // Return empty list
+                }
+        }
+
+        // Add this to RecipeDatabaseHelper companion object
+        fun addCommentToRecipe(recipeId: String, comment: CommentModel, onComplete: (Boolean) -> Unit) {
+            val db = Firebase.firestore
+
+            val commentData = hashMapOf(
+                "commentor" to comment.commentor,
+                "comment" to comment.comment,
+                "comment_date" to FieldValue.serverTimestamp(), // Use server timestamp for consistency
+            )
+
+            db.collection("recipes")
+                .document(recipeId)
+                .collection("comments")
+                .add(commentData)
+                .addOnSuccessListener {
+                    Log.d("DEBUG", "Comment successfully added to Firestore")
+                    onComplete(true)
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("DEBUG", "Failed to add comment: ${exception.message}")
+                    onComplete(false)
+                }
+        }
+
+        private fun formatDate(dateString: String): String {
+            return try {
+                val inputFormat = SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH)
+                val outputFormat = SimpleDateFormat("MMM dd, yyyy 'at' hh:mm a", Locale.getDefault())
+                val date = inputFormat.parse(dateString)
+                outputFormat.format(date)
+            } catch (e: Exception) {
+                "Unknown date"
+            }
+        }
+
+
     }
 }

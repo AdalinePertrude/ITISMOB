@@ -1,8 +1,10 @@
 package com.mobdeve.s17.itismob_mc0
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,29 +15,38 @@ import java.util.Date
 import java.util.Locale
 
 class CommentActivity : ComponentActivity(){
+    private val USER_PREFERENCE = "USER_PREFERENCE"
     private lateinit var viewBinding : CommentPageBinding
     private lateinit var comments_rv : RecyclerView
     private lateinit var commentAdapter: CommentAdapter
 
-    private val commentData = ArrayList(CommentDataGenerator.generateCommentData())
+    private val commentData: ArrayList<CommentModel> = ArrayList()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val recipeId = intent.getStringExtra("RECIPE_ID")
         super.onCreate(savedInstanceState)
         viewBinding = CommentPageBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
-
         commentAdapter = CommentAdapter(commentData)
-
         this.comments_rv = viewBinding.commentsRv
         this.comments_rv.adapter = commentAdapter
         this.comments_rv.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+
+        RecipeDatabaseHelper.fetchRecipeComments(recipeId.toString()) { comments ->
+            runOnUiThread {
+                commentData.clear()
+                commentData.addAll(comments)
+                commentAdapter.notifyDataSetChanged()
+                updateCommentVisibility()
+            }
+        }
 
         updateSendButtonState()
         setupCommentInput()
         updateCommentVisibility()
     }
-
     private fun setupCommentInput() {
         // Initial button state
         updateSendButtonState()
@@ -66,21 +77,48 @@ class CommentActivity : ComponentActivity(){
     }
 
     private fun addNewComment(text: String) {
+        val recipeId = intent.getStringExtra("RECIPE_ID") ?: return
+        val sp: SharedPreferences = getSharedPreferences(USER_PREFERENCE, MODE_PRIVATE)
+        val user = sp.getString("userName", "User")
+
         val newComment = CommentModel(
-            "Current User", // Replace with actual username
+            user.toString(),
             getCurrentDate(),
             text.trim()
         )
-        //add comment
+
+        Log.d("DEBUG", "Adding comment: $newComment")
+
+        // Add to local list immediately for better UX
         commentData.add(newComment)
-        // notify adapter
         commentAdapter.notifyItemInserted(commentData.size - 1)
-        // clear input field
+
+        // Clear input field
         viewBinding.addCommentEtv.text.clear()
         updateCommentVisibility()
 
+        // Scroll to the new comment
+        comments_rv.scrollToPosition(commentData.size - 1)
+
+        // Save to Firestore
+        saveCommentToFirestore(recipeId, newComment)
     }
 
+    private fun saveCommentToFirestore(recipeId: String, comment: CommentModel) {
+        RecipeDatabaseHelper.addCommentToRecipe(recipeId, comment) { success ->
+            runOnUiThread {
+                if (success) {
+                    Log.d("DEBUG", "Comment saved successfully to Firestore")
+                } else {
+                    Log.e("DEBUG", "Failed to save comment to Firestore")
+                    // Optional: Remove from local list if save failed
+                    commentData.remove(comment)
+                    commentAdapter.notifyDataSetChanged()
+                    updateCommentVisibility()
+                }
+            }
+        }
+    }
 
     private fun updateCommentVisibility() {
         if (commentData.isEmpty()) {
