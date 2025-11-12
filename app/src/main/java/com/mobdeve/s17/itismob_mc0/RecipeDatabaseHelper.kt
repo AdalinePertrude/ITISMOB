@@ -17,6 +17,9 @@ class RecipeDatabaseHelper {
             db.collection("recipes")
                 .get()
                 .addOnSuccessListener { documents ->
+                    val recipeList = ArrayList<RecipeModel>()
+
+                    // First, get all recipes without ratings
                     for (document in documents) {
                         val recipe = RecipeModel(
                             id = document.getString("id") ?: "",
@@ -34,14 +37,29 @@ class RecipeDatabaseHelper {
                             label = document.getString("label") ?: "",
                             mealType = document.get("mealType") as? List<String> ?: emptyList(),
                             prepTime = document.getLong("preptime")?.toInt() ?: 0,
-                            rating = document.getDouble("rating") ?: 0.0,
+                            rating = 0.0, // Temporary, will be updated
                             serving = document.getLong("yield")?.toInt() ?: 0,
                             isSaved = document.getBoolean("isSaved") ?: false
                         )
-                        recipes.add(recipe)
+                        recipeList.add(recipe)
                     }
-                    println("DEBUG: Fetched ${recipes.size} recipes with all fields")
-                    onComplete(recipes)
+
+                    // Now fetch ratings for each recipe
+                    val recipesWithRatings = ArrayList<RecipeModel>()
+                    var completedCount = 0
+
+                    recipeList.forEach { recipe ->
+                        fetchRecipeRating(recipe.id) { averageRating ->
+                            val updatedRecipe = recipe.copy(rating = averageRating)
+                            recipesWithRatings.add(updatedRecipe)
+                            completedCount++
+
+                            if (completedCount == recipeList.size) {
+                                println("DEBUG: Fetched ${recipesWithRatings.size} recipes with real-time ratings")
+                                onComplete(recipesWithRatings)
+                            }
+                        }
+                    }
                 }
                 .addOnFailureListener { exception ->
                     println("Error fetching recipes: ${exception.message}")
@@ -104,6 +122,7 @@ class RecipeDatabaseHelper {
                             commentor = document.getString("commentor") ?: "",
                             comment = document.getString("comment") ?: "",
                             commentDate = formatDate(document.getTimestamp("comment_date")?.toDate().toString()) ?: "",
+                            userid = document.getString("user_id") ?: ""
                         )
                         comments.add(comment)
                     }
@@ -116,7 +135,6 @@ class RecipeDatabaseHelper {
                 }
         }
 
-        // Add this to RecipeDatabaseHelper companion object
         fun addCommentToRecipe(recipeId: String, comment: CommentModel, onComplete: (Boolean) -> Unit) {
             val db = Firebase.firestore
 
@@ -124,6 +142,7 @@ class RecipeDatabaseHelper {
                 "commentor" to comment.commentor,
                 "comment" to comment.comment,
                 "comment_date" to FieldValue.serverTimestamp(), // Use server timestamp for consistency
+                "user_id" to comment.userid
             )
 
             db.collection("recipes")
@@ -140,6 +159,58 @@ class RecipeDatabaseHelper {
                 }
         }
 
+
+        fun fetchRecipeRating(recipeid: String, onComplete: (Double) -> Unit) {
+            val db = Firebase.firestore
+            val ratingsCollection = db.collection("recipes")
+                .document(recipeid)
+                .collection("ratings")
+                .get()
+                .addOnSuccessListener { documents ->
+                    var totalRating = 0.0
+                    var ratingCount = 0
+
+                    for (document in documents) {
+                        val rating = document.getDouble("rating") ?: 0.0
+                        totalRating += rating
+                        ratingCount++
+                    }
+
+                    val averageRating = if (ratingCount > 0) totalRating / ratingCount else 0.0
+                    println("DEBUG: Average rating for recipe $recipeid: $averageRating ($ratingCount ratings)")
+
+                    // Update the average rating in the recipe document
+                    updateRecipeAvgRating(recipeid, averageRating) { success ->
+                        if (success) {
+                            println("DEBUG: Successfully updated average rating in recipe document")
+                        } else {
+                            println("DEBUG: Failed to update average rating in recipe document")
+                        }
+                        // Return the average rating regardless of update success
+                        onComplete(averageRating)
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    println("Error fetching ratings: ${exception.message}")
+                    onComplete(0.0)
+                }
+        }
+
+        fun updateRecipeAvgRating(recipeid: String, avgRating: Double, onComplete: (Boolean) -> Unit) {
+            val db = Firebase.firestore
+
+            db.collection("recipes")
+                .document(recipeid)
+                .update("rating", avgRating)
+                .addOnSuccessListener {
+                    println("DEBUG: Average rating updated to $avgRating for recipe $recipeid")
+                    onComplete(true)
+                }
+                .addOnFailureListener { exception ->
+                    println("ERROR: Failed to update average rating: ${exception.message}")
+                    onComplete(false)
+                }
+        }
         private fun formatDate(dateString: String): String {
             return try {
                 val inputFormat = SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH)

@@ -9,7 +9,7 @@ class HomeViewHolder(private var viewBinding: HpRecipeCardLayoutBinding) : Recyc
     fun bindData(model: RecipeModel) {
         loadImage(model.imageId)
         viewBinding.hpDishnameTv.text = model.label
-        viewBinding.hpRatingTv.text = "${model.rating} / 5.0"
+        getRating(model.id)
         viewBinding.hpTimeServingTv.text = "${model.prepTime} mins | Serving for ${model.serving}"
 
         updateSaveButtonUI(model.isSaved)
@@ -19,7 +19,6 @@ class HomeViewHolder(private var viewBinding: HpRecipeCardLayoutBinding) : Recyc
             updateSaveButtonUI(model.isSaved)
         }
     }
-
     private fun loadImage(imageUrl: String) {
         Glide.with(viewBinding.root.context)
             .load(imageUrl)
@@ -40,4 +39,10 @@ class HomeViewHolder(private var viewBinding: HpRecipeCardLayoutBinding) : Recyc
             viewBinding.hpSaveBtn.setImageResource(R.drawable.ic_save)
         }
     }
+    fun getRating(recipeid : String){
+        RecipeDatabaseHelper.fetchRecipeRating(recipeid) { rating ->
+            viewBinding.hpRatingTv.text = "$rating / 5.0"
+        }
+    }
+
 }

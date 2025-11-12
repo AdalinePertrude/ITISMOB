@@ -84,23 +84,17 @@ class CommentActivity : ComponentActivity(){
         val newComment = CommentModel(
             user.toString(),
             getCurrentDate(),
-            text.trim()
+            text.trim(),
+            sp.getString("userId", "").toString()
         )
 
         Log.d("DEBUG", "Adding comment: $newComment")
 
-        // Add to local list immediately for better UX
         commentData.add(newComment)
         commentAdapter.notifyItemInserted(commentData.size - 1)
-
-        // Clear input field
         viewBinding.addCommentEtv.text.clear()
         updateCommentVisibility()
-
-        // Scroll to the new comment
         comments_rv.scrollToPosition(commentData.size - 1)
-
-        // Save to Firestore
         saveCommentToFirestore(recipeId, newComment)
     }
 
