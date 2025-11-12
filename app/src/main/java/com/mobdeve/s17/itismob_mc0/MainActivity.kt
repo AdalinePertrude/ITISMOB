@@ -15,9 +15,9 @@ class MainActivity : ComponentActivity() {
     private lateinit var sharedPreferences: SharedPreferences
     private val USER_PREFERENCE = "USER_PREFERENCE"
 
-    private val edamamUsername = "adrianb"
-    private val edamamAppId = "00540cc5"
-    private val edamamAppKey = "8b0209195f7d3520fc0ad63e93923d46"
+    // private val edamamUsername = "adrianb"
+    // private val edamamAppId = "00540cc5"
+    // private val edamamAppKey = "8b0209195f7d3520fc0ad63e93923d46"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

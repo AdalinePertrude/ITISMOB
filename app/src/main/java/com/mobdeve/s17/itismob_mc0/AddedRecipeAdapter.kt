@@ -8,10 +8,10 @@ import android.view.animation.AnimationUtils
 import androidx.recyclerview.widget.RecyclerView
 import com.mobdeve.s17.itismob_mc0.databinding.AddedRecipeToCalendarBinding
 
-class AddedRecipeAdapter(private val data: ArrayList<DishesModel>) : RecyclerView.Adapter<AddedRecipeViewHolder>() {
+class AddedRecipeAdapter(private val data: ArrayList<RecipeModel>) : RecyclerView.Adapter<AddedRecipeViewHolder>() {
 
-    var onItemLongClickListener: ((Int, DishesModel) -> Unit)? = null
-    var onItemClickListener: ((Int, DishesModel) -> Unit)? = null
+    var onItemLongClickListener: ((Int, RecipeModel) -> Unit)? = null
+    var onItemClickListener: ((Int, RecipeModel) -> Unit)? = null
     var onDragStarted: ((Int) -> Unit)? = null
     var onDragEnded: ((Int) -> Unit)? = null
 

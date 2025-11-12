@@ -60,7 +60,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="10dp"
         android:gravity="center"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
@@ -80,10 +79,18 @@
 
         <Spinner
             android:id="@+id/filter_spinner"
-            android:layout_width="wrap_content"
+            android:layout_width="100dp"
             android:layout_height="48dp"
             android:layout_marginStart="4dp"
             android:background="@drawable/spinner_background" />
+
+        <ImageButton
+            android:id="@+id/sort_order_btn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Toggle sort order"
+            android:src="@drawable/ic_sort_ascending" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -95,9 +102,10 @@
         android:layout_marginEnd="10dp"
         app:layout_constraintBottom_toTopOf="@+id/nav_bar_ll"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/recipes_tv" />
+        app:layout_constraintTop_toBottomOf="@+id/recipes_tv"
+        app:layout_constraintVertical_bias="0.0" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/add_recipe_fab"

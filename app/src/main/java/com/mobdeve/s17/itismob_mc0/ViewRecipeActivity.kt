@@ -3,13 +3,16 @@ package com.mobdeve.s17.itismob_mc0
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RatingBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import com.bumptech.glide.Glide
 import java.util.Calendar
 
 class ViewRecipeActivity : ComponentActivity() {
@@ -28,9 +31,20 @@ class ViewRecipeActivity : ComponentActivity() {
         stepsArray.add("Step 2")
         val calendarAdd: Button = findViewById(R.id.addToCalendarBtn)
         val savedBtn: ImageButton = findViewById(R.id.savedRecBtn)
-        val returnPageButton: ImageButton = findViewById(R.id.returnPageBtn)
         val viewCommentsButton: Button = findViewById(R.id.viewCommsBtn)
         var ifClicked= false
+
+        val recipeId = intent.getStringExtra("RECIPE_ID")
+        // Log.d("DEBUG", "id: $recipeId")
+        if (recipeId != null) {
+            loadRecipeData(recipeId)
+        } else {
+            // Handle error - no recipe ID provided
+            finish()
+        }
+
+
+
         savedBtn.setOnClickListener {
             if(ifClicked) {
                 savedBtn.setImageResource(R.drawable.ic_saved)
@@ -61,6 +75,7 @@ class ViewRecipeActivity : ComponentActivity() {
             stepLayout.addView(temp)
             stepNum+= 1
         }
+
         calendarAdd.setOnClickListener {
             val calendar = Calendar.getInstance()
             val year = calendar.get(Calendar.YEAR)
@@ -76,12 +91,35 @@ class ViewRecipeActivity : ComponentActivity() {
             )
             datePickerDialog.show()
         }
-        returnPageButton.setOnClickListener {
-            finish()
-        }
+
         viewCommentsButton.setOnClickListener {
             val intent = Intent(this, CommentActivity::class.java)
             startActivity(intent)
         }
+    }
+
+    private fun loadRecipeData(recipeId: String) {
+
+        RecipeDatabaseHelper.searchRecipeByField("id", recipeId) { recipe ->
+            runOnUiThread {
+                if (recipe != null) {
+                    // Update UI with recipe data
+                    updateUI(recipe)
+                } else {
+
+                }
+
+            }
+        }
+    }
+
+    private fun updateUI(recipe: RecipeModel) {
+        // Update your UI elements with recipe data
+        findViewById<TextView>(R.id.recipeNameTv).text = recipe.label
+
+        // Load image with Glide/Picasso
+        Glide.with(this)
+            .load(recipe.imageId)
+            .into(findViewById(R.id.imageView2))
     }
 }

@@ -1,15 +1,14 @@
 package com.mobdeve.s17.itismob_mc0
 
-import android.net.Uri
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.mobdeve.s17.itismob_mc0.databinding.AddedRecipeToCalendarBinding
 
 class AddedRecipeViewHolder (private val viewBinding: AddedRecipeToCalendarBinding) : RecyclerView.ViewHolder(viewBinding.root){
 
-    fun bindAddedDishModel(model : DishesModel) {
+    fun bindAddedDishModel(model : RecipeModel) {
         loadImage(model.imageId)
-        viewBinding.atcDishnameTv.setText(model.dishname);
+        viewBinding.atcDishnameTv.setText(model.label);
         viewBinding.atcRatingTv.text = "${model.rating} / 5.0"
         viewBinding.atcTimeServingTv.text = "${model.prepTime} mins | Serving for ${model.serving}"
     }

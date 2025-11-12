@@ -29,7 +29,8 @@ class CalendarActivity : ComponentActivity(), OnItemListener {
     private var selectedRecipePosition = -1
 
     private lateinit var addedDishes_rv : RecyclerView
-    private val addedRecipeData : kotlin.collections.ArrayList<DishesModel> = AddedRecipeDataGenerator.generateAddedDishesData()
+    private val addedRecipeData : ArrayList<RecipeModel> = ArrayList()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -173,7 +174,7 @@ class CalendarActivity : ComponentActivity(), OnItemListener {
 
         adapter.onItemClickListener = { position, dish ->
             if (!isDeleteMode) {
-                Toast.makeText(this, "Clicked: ${dish.dishname}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Clicked: ${dish.label}", Toast.LENGTH_SHORT).show()
             }
         }
 

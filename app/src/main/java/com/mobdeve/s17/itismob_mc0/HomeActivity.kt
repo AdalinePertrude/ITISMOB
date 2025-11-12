@@ -1,13 +1,14 @@
 package com.mobdeve.s17.itismob_mc0
 
 import android.content.Intent
+import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.SearchView
-import android.widget.Toast
+// import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,14 +19,13 @@ import java.util.Locale
 
 class HomeActivity : ComponentActivity() {
     private lateinit var viewBinding: HomePageBinding
-    private lateinit var recipe_rv: RecyclerView
-    private val RecipeData: ArrayList<DishesModel> = AddedRecipeDataGenerator.generateAddedDishesData()
+    private lateinit var recipeRv: RecyclerView
+    private val recipeData: ArrayList<RecipeModel> = ArrayList() // Initialize as empty
     private lateinit var searchView: SearchView
-    private lateinit var searchList: ArrayList<DishesModel>
-
-    private val filters = arrayOf("date added", "rating", "difficulty")
+    private lateinit var searchList: ArrayList<RecipeModel>
     private lateinit var backPressedCallback: OnBackPressedCallback
     private lateinit var fabAddRecipe: FloatingActionButton
+    private var isAscending = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,18 +34,39 @@ class HomeActivity : ComponentActivity() {
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
         setupBackPressedHandler()
         setupSpinner()
-        setupRecyclerView()
+        setupSortOrderButton()
+        setupRecyclerView() // This will initialize with empty data first
         setupSearchView()
         setupFAB()
         setupNavBar()
+        loadDataFromFirebase() // Load data from Firebase after UI setup
+    }
 
-        viewBinding.logoIv.post {
-            println("DEBUG: Logo width: ${viewBinding.logoIv.width}")
-            println("DEBUG: Logo height: ${viewBinding.logoIv.height}")
-            println("DEBUG: Logo visibility: ${viewBinding.logoIv.visibility}")
-            println("DEBUG: Logo drawable: ${viewBinding.logoIv.drawable}")
+    private fun loadDataFromFirebase() {
+        RecipeDatabaseHelper.fetchRecipeData { dishesList ->
+            runOnUiThread {
+                // runs when Firebase data is loaded
+                recipeData.clear()
+                recipeData.addAll(dishesList)
+
+                searchList.clear()
+                searchList.addAll(dishesList)
+
+                // Update the adapter with new data
+                (recipeRv.adapter as? HomeAdapter)?.updateData(ArrayList(searchList))
+
+                // Show/hide empty state
+                if (dishesList.isEmpty()) {
+                    viewBinding.noResultsTv.visibility = View.VISIBLE
+                    viewBinding.recipesRv.visibility = View.GONE
+                   // Toast.makeText(this, "No recipes found", Toast.LENGTH_SHORT).show()
+                } else {
+                    viewBinding.noResultsTv.visibility = View.GONE
+                    viewBinding.recipesRv.visibility = View.VISIBLE
+                   // Toast.makeText(this, "Loaded ${dishesList.size} recipes", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
-
     }
 
     private fun setupNavBar(){
@@ -62,9 +83,9 @@ class HomeActivity : ComponentActivity() {
 //          startActivity(intent)
 //      }
     }
+
     private fun setupFAB() {
         fabAddRecipe = viewBinding.addRecipeFab
-
         fabAddRecipe.setOnClickListener {
             //navigate to AddRecipeActivity
             //navigateToAddRecipe()
@@ -80,10 +101,6 @@ class HomeActivity : ComponentActivity() {
 //        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
 //    }
 
-
-
-
-
     private fun setupBackPressedHandler() {
         backPressedCallback = object : OnBackPressedCallback(false) {
             override fun handleOnBackPressed() {
@@ -97,6 +114,7 @@ class HomeActivity : ComponentActivity() {
 
     private fun setupSpinner() {
         val spinner = viewBinding.filterSpinner
+        val filters = arrayOf("All", "Date Added", "Rating", "Duration", "Calories", "Ingredients")
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, filters)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.adapter = adapter
@@ -104,24 +122,124 @@ class HomeActivity : ComponentActivity() {
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 val selectedItem = filters[position]
-                Toast.makeText(this@HomeActivity, "Selected: $selectedItem", Toast.LENGTH_SHORT).show()
+               //  Toast.makeText(this@HomeActivity, "Selected: $selectedItem", Toast.LENGTH_SHORT).show()
+                applyFilter(selectedItem)
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
     }
 
+    private fun setupSortOrderButton() {
+
+        updateSortButtonIcon()
+
+        viewBinding.sortOrderBtn.setOnClickListener {
+            isAscending = !isAscending
+            updateSortButtonIcon()
+            // Re-apply current filter with new order
+            val currentFilter = viewBinding.filterSpinner.selectedItem as String
+            applyFilter(currentFilter)
+        }
+    }
+
+    private fun updateSortButtonIcon() {
+        val iconRes= if (isAscending) {
+            R.drawable.ic_sort_ascending
+        } else {
+            R.drawable.ic_sort_descending
+        }
+
+        viewBinding.sortOrderBtn.setImageResource(iconRes)
+    }
+
+
+    private fun applyFilter(filterType: String) {
+        val filteredList = when (filterType) {
+            "Date Added" -> if (isAscending) filterByDateAddedAsc() else filterByDateAddedDesc()
+            "Rating" -> if (isAscending) filterByRatingAsc() else filterByRatingDesc()
+            "Duration" -> if (isAscending) filterByDurationAsc() else filterByDurationDesc()
+            "Calories" -> if (isAscending) filterByCaloriesAsc() else filterByCaloriesDesc()
+            "Ingredients" -> if (isAscending) filterByIngredientsAsc() else filterByIngredientsDesc()
+            else -> ArrayList(recipeData)
+        }
+
+        searchList.clear()
+        searchList.addAll(filteredList)
+        (recipeRv.adapter as? HomeAdapter)?.updateData(ArrayList(searchList))
+    }
+    
+    // Ascending methods
+    private fun filterByDateAddedAsc(): ArrayList<RecipeModel> {
+        return ArrayList(recipeData.sortedBy { parseDate(it.createdAt) })
+    }
+
+    private fun filterByRatingAsc(): ArrayList<RecipeModel> {
+        return ArrayList(recipeData.sortedBy { it.rating })
+    }
+
+    private fun filterByDurationAsc(): ArrayList<RecipeModel> {
+        return ArrayList(recipeData.sortedBy { it.prepTime })
+    }
+
+    private fun filterByCaloriesAsc(): ArrayList<RecipeModel> {
+        return ArrayList(recipeData.sortedBy { it.calories })
+    }
+
+    private fun filterByIngredientsAsc(): ArrayList<RecipeModel> {
+        return ArrayList(recipeData.sortedBy { it.ingredients.size })
+    }
+
+    // Descending methods
+    private fun filterByDateAddedDesc(): ArrayList<RecipeModel> {
+        return ArrayList(recipeData.sortedByDescending { parseDate(it.createdAt) })
+    }
+
+    private fun filterByRatingDesc(): ArrayList<RecipeModel> {
+        return ArrayList(recipeData.sortedByDescending { it.rating })
+    }
+
+    private fun filterByDurationDesc(): ArrayList<RecipeModel> {
+        return ArrayList(recipeData.sortedByDescending { it.prepTime })
+    }
+
+    private fun filterByCaloriesDesc(): ArrayList<RecipeModel> {
+        return ArrayList(recipeData.sortedByDescending { it.calories })
+    }
+
+    private fun filterByIngredientsDesc(): ArrayList<RecipeModel> {
+        return ArrayList(recipeData.sortedByDescending { it.ingredients.size })
+    }
+
+    private fun parseDate(dateString: String): Long {
+        return try {
+            // Try the format you're using when saving dates
+            val format = SimpleDateFormat("MMM dd, yyyy 'at' hh:mm a", Locale.getDefault())
+            format.parse(dateString)?.time ?: 0L
+        } catch (e: Exception) {
+            // Fallback to default format
+            try {
+                SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.getDefault())
+                    .parse(dateString)?.time ?: 0L
+            } catch (e: Exception) {
+                0L
+            }
+        }
+    }
+
+
     private fun setupRecyclerView() {
-        this.recipe_rv = viewBinding.recipesRv
+        this.recipeRv = viewBinding.recipesRv
         this.searchList = ArrayList()
-        this.searchList.addAll(RecipeData)
-        this.recipe_rv.adapter = HomeAdapter(this.searchList)
-        this.recipe_rv.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        // Start with empty data, will be populated from Firebase
+        this.recipeRv.adapter = HomeAdapter(ArrayList(searchList))
+        this.recipeRv.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
     }
 
     private fun setupSearchView() {
         this.searchView = viewBinding.searchViewSv
         searchView.clearFocus()
+
         // searching
         searchView.setOnQueryTextFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
@@ -136,22 +254,36 @@ class HomeActivity : ComponentActivity() {
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextChange(newText: String?): Boolean {
                 // real-time search as user types
-                searchList.clear()
                 val searchText = newText?.lowercase(Locale.getDefault()) ?: ""
 
                 if (searchText.isNotEmpty()) {
-                    RecipeData.forEach {
-                        if (it.dishname.lowercase(Locale.getDefault()).contains(searchText)) {
-                            searchList.add(it)
+                    // Filter the recipeData and update searchList
+                    val filteredList = recipeData.filter {
+                        val searchTextLower = searchText.lowercase(Locale.getDefault())
+
+                        it.label.lowercase(Locale.getDefault()).contains(searchTextLower) ||
+                        it.cuisineType.any { cuisine ->
+                            cuisine.lowercase(Locale.getDefault()).contains(searchTextLower)
+                        } ||
+                        it.ingredients.any { ingredientLine ->
+                            // split ingredient lines into individual words for better matching
+                            ingredientLine.lowercase(Locale.getDefault()).split(" ").any { word ->
+                                word.contains(searchTextLower)
+                            } || ingredientLine.lowercase(Locale.getDefault()).contains(searchTextLower)
                         }
                     }
+                    searchList.clear()
+                    searchList.addAll(filteredList)
                 } else {
-                    searchList.addAll(RecipeData)
+                    // Show all data when search is empty
+                    searchList.clear()
+                    searchList.addAll(recipeData)
                 }
 
-                recipe_rv.adapter?.notifyDataSetChanged()
+                // Update the adapter with the filtered list
+                (recipeRv.adapter as? HomeAdapter)?.updateData(ArrayList(searchList))
 
-                //show message if no results found
+                // Show/hide empty state
                 if (searchList.isEmpty() && searchText.isNotEmpty()) {
                     viewBinding.noResultsTv.visibility = View.VISIBLE
                     viewBinding.recipesRv.visibility = View.GONE
