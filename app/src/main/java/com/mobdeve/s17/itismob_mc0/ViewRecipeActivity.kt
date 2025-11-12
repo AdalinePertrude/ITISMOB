@@ -31,6 +31,7 @@ class ViewRecipeActivity : ComponentActivity() {
         stepsArray.add("Step 2")
         val calendarAdd: Button = findViewById(R.id.addToCalendarBtn)
         val savedBtn: ImageButton = findViewById(R.id.savedRecBtn)
+        val returnPageButton: ImageButton = findViewById(R.id.returnPageBtn)
         val viewCommentsButton: Button = findViewById(R.id.viewCommsBtn)
         var ifClicked= false
 
@@ -75,7 +76,6 @@ class ViewRecipeActivity : ComponentActivity() {
             stepLayout.addView(temp)
             stepNum+= 1
         }
-
         calendarAdd.setOnClickListener {
             val calendar = Calendar.getInstance()
             val year = calendar.get(Calendar.YEAR)
@@ -91,7 +91,9 @@ class ViewRecipeActivity : ComponentActivity() {
             )
             datePickerDialog.show()
         }
-
+        returnPageButton.setOnClickListener {
+            finish()
+        }
         viewCommentsButton.setOnClickListener {
             val intent = Intent(this, CommentActivity::class.java)
             startActivity(intent)
@@ -122,4 +124,6 @@ class ViewRecipeActivity : ComponentActivity() {
             .load(recipe.imageId)
             .into(findViewById(R.id.imageView2))
     }
+
+
 }
