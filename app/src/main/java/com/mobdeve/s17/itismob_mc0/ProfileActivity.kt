@@ -25,11 +25,17 @@ class ProfileActivity : ComponentActivity() {
         val publishedRecipes: Button = findViewById(R.id.publishedRecsBtn)
         val backHome: Button = findViewById(R.id.backHomeBtn)
         val logout: Button = findViewById(R.id.logoutBtn)
+
         logout.setOnClickListener {
             logoutUser()
         }
         backHome.setOnClickListener {
             val intent = Intent(this, HomeActivity::class.java)
+            startActivity(intent)
+        }
+
+        editProfile.setOnClickListener {
+            val intent = Intent(this, EditProfileActivity::class.java)
             startActivity(intent)
         }
     }

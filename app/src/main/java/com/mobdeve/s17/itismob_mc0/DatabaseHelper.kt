@@ -8,7 +8,7 @@ import com.google.firebase.firestore.firestore
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class RecipeDatabaseHelper {
+class DatabaseHelper {
     companion object {
         fun fetchRecipeData(onComplete: (ArrayList<RecipeModel>) -> Unit) {
             val db = Firebase.firestore
@@ -196,6 +196,29 @@ class RecipeDatabaseHelper {
                 }
         }
 
+        fun addRecipeRating(recipeId: String, rating: RatingModel, onComplete: (Boolean) -> Unit) {
+            val db = Firebase.firestore
+
+            val ratingData = hashMapOf(
+                "rater" to rating.rater,
+                "rating" to rating.rating,
+                "ratedAt" to FieldValue.serverTimestamp()
+            )
+
+            db.collection("recipes")
+                .document(recipeId)
+                .collection("ratings")
+                .add(ratingData)
+                .addOnSuccessListener {
+                    println("DEBUG: Rating successfully added")
+                    onComplete(true)
+                }
+                .addOnFailureListener { exception ->
+                    println("ERROR: Failed to add rating: ${exception.message}")
+                    onComplete(false)
+                }
+        }
+
         fun updateRecipeAvgRating(recipeid: String, avgRating: Double, onComplete: (Boolean) -> Unit) {
             val db = Firebase.firestore
 
@@ -209,6 +232,77 @@ class RecipeDatabaseHelper {
                 .addOnFailureListener { exception ->
                     println("ERROR: Failed to update average rating: ${exception.message}")
                     onComplete(false)
+                }
+        }
+
+        fun updateUserInfo(userid: String, name: String, email: String, onComplete: (Boolean, String?) -> Unit) {
+            val db = Firebase.firestore
+
+            val userInfo = mapOf<String, Any>(
+                "fullname" to name,
+                "email" to email,
+                "updatedAt" to FieldValue.serverTimestamp()
+            )
+
+            db.collection("users")
+                .document(userid)
+                .update(userInfo)
+                .addOnSuccessListener {
+                    println("DEBUG: User info updated successfully")
+                    onComplete(true, null)
+                }
+                .addOnFailureListener { exception ->
+                    println("ERROR: Failed to update user info: ${exception.message}")
+                    onComplete(false, exception.message)
+                }
+        }
+        fun updateUserPassword(userid: String, oldPassword: String, newPassword: String, onComplete: (Boolean, String?) -> Unit) {
+            verifyUserPassword(userid, oldPassword) { isCorrect, error ->
+                if (isCorrect) {
+                    // Hash and update new password
+                    val newHashedPassword = PasswordHasher.hashPassword(newPassword)
+                    val db = Firebase.firestore
+
+                    db.collection("users")
+                        .document(userid)
+                        .update("password", newHashedPassword)
+                        .addOnSuccessListener {
+                            println("DEBUG: Password updated successfully")
+                            onComplete(true, null)
+                        }
+                        .addOnFailureListener { exception ->
+                            println("ERROR: Failed to update password: ${exception.message}")
+                            onComplete(false, exception.message)
+                        }
+                } else {
+                    onComplete(false, error ?: "Old password is incorrect")
+                }
+            }
+        }
+
+        fun verifyUserPassword(userid: String, inputPassword: String, onComplete: (Boolean, String?) -> Unit) {
+            val db = Firebase.firestore
+
+            db.collection("users")
+                .document(userid)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        val storedHashedPassword = document.getString("password")
+
+                        if (storedHashedPassword == null) {
+                            onComplete(false, "Password not found")
+                            return@addOnSuccessListener
+                        }
+
+                        val isMatch = PasswordHasher.verifyPassword(inputPassword, storedHashedPassword)
+                        onComplete(isMatch, if (isMatch) null else "Incorrect password")
+                    } else {
+                        onComplete(false, "User not found")
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    onComplete(false, "Database error: ${exception.message}")
                 }
         }
         private fun formatDate(dateString: String): String {

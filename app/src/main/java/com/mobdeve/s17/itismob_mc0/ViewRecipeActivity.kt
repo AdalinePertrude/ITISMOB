@@ -3,7 +3,6 @@ package com.mobdeve.s17.itismob_mc0
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.LinearLayout
@@ -102,7 +101,7 @@ class ViewRecipeActivity : ComponentActivity() {
 
     private fun loadRecipeData(recipeId: String) {
 
-        RecipeDatabaseHelper.searchRecipeByField("id", recipeId) { recipe ->
+        DatabaseHelper.searchRecipeByField("id", recipeId) { recipe ->
             runOnUiThread {
                 if (recipe != null) {
                     // Update UI with recipe data

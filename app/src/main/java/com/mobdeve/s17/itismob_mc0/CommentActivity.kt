@@ -34,7 +34,7 @@ class CommentActivity : ComponentActivity(){
         this.comments_rv.adapter = commentAdapter
         this.comments_rv.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
 
-        RecipeDatabaseHelper.fetchRecipeComments(recipeId.toString()) { comments ->
+        DatabaseHelper.fetchRecipeComments(recipeId.toString()) { comments ->
             runOnUiThread {
                 commentData.clear()
                 commentData.addAll(comments)
@@ -99,7 +99,7 @@ class CommentActivity : ComponentActivity(){
     }
 
     private fun saveCommentToFirestore(recipeId: String, comment: CommentModel) {
-        RecipeDatabaseHelper.addCommentToRecipe(recipeId, comment) { success ->
+        DatabaseHelper.addCommentToRecipe(recipeId, comment) { success ->
             runOnUiThread {
                 if (success) {
                     Log.d("DEBUG", "Comment saved successfully to Firestore")

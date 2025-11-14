@@ -43,7 +43,7 @@ class HomeActivity : ComponentActivity() {
     }
 
     private fun loadDataFromFirebase() {
-        RecipeDatabaseHelper.fetchRecipeData { dishesList ->
+        DatabaseHelper.fetchRecipeData { dishesList ->
             runOnUiThread {
                 // runs when Firebase data is loaded
                 recipeData.clear()

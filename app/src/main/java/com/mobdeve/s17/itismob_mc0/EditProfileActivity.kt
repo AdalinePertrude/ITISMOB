@@ -1,7 +1,10 @@
 package com.mobdeve.s17.itismob_mc0
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -9,112 +12,239 @@ import com.mobdeve.s17.itismob_mc0.databinding.EditProfilePageBinding
 
 class EditProfileActivity : ComponentActivity() {
     private lateinit var viewBinding: EditProfilePageBinding
-    private val originalName = "Adrian"
-    private val originalEmail = "sample@gmail.com"
-    private val originalPassword = "1234567"
+    private val USER_PREFERENCE = "USER_PREFERENCE"
+    private lateinit var sp: SharedPreferences
+    private var userid: String? = null
+    private var userName: String? = null
+    private var userEmail: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewBinding = EditProfilePageBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
+        // Initialize SharedPreferences
+        sp = getSharedPreferences(USER_PREFERENCE, MODE_PRIVATE)
+        userid = sp.getString("userId", null)
+        userName = sp.getString("userName", null)
+        userEmail = sp.getString("userEmail", null)
+
+        setupEditTextListeners()
         setupNavBar()
-        // Set current values in EditText fields
-        viewBinding.nameEtv.setText(originalName)
-        viewBinding.emailEtv.setText(originalEmail)
+
+        // Set initial values
+        viewBinding.nameEtv.setText(userName)
+        viewBinding.emailEtv.setText(userEmail)
 
         viewBinding.epSaveChangesBtn.setOnClickListener {
-            // Get values INSIDE the click listener when button is clicked
-            val name = viewBinding.nameEtv.text.toString().trim()
-            val email = viewBinding.emailEtv.text.toString().trim()
-            val oldPass = viewBinding.oldPassEtvp.text.toString().trim()
-            val newPass = viewBinding.newPassEtvp.text.toString().trim()
-            val confirmNewPass = viewBinding.confirmNewPassEtvp.text.toString().trim()
+            saveChanges()
+        }
 
-            Log.d("DEBUG", "Name: $name, Email: $email")
-            Log.d("DEBUG", "OldPass: $oldPass, NewPass: $newPass, ConfirmPass: $confirmNewPass")
+        // Initial button state
+        checkIfChangesMade()
+    }
 
-            val nameChanged = name != originalName
-            val emailChanged = email != originalEmail
-            val passwordFieldsFilled = oldPass.isNotEmpty() || newPass.isNotEmpty() || confirmNewPass.isNotEmpty()
+    private fun saveChanges() {
+        val name = viewBinding.nameEtv.text.toString().trim()
+        val email = viewBinding.emailEtv.text.toString().trim()
+        val oldPass = viewBinding.oldPassEtvp.text.toString().trim()
+        val newPass = viewBinding.newPassEtvp.text.toString().trim()
+        val confirmNewPass = viewBinding.confirmNewPassEtvp.text.toString().trim()
 
-            Log.d("DEBUG", "Name changed: $nameChanged, Email changed: $emailChanged, Password fields filled: $passwordFieldsFilled")
+        val nameChanged = name != userName
+        val emailChanged = email != userEmail
+        val passwordFieldsFilled = oldPass.isNotEmpty() || newPass.isNotEmpty() || confirmNewPass.isNotEmpty()
 
-            when {
-                // No changes at all
-                !nameChanged && !emailChanged && !passwordFieldsFilled -> {
-                    Toast.makeText(this, "No changes made", Toast.LENGTH_SHORT).show()
+        Log.d("DEBUG", "Name changed: $nameChanged, Email changed: $emailChanged, Password fields filled: $passwordFieldsFilled")
+
+        when {
+            // Both name/email and password changes
+            (nameChanged || emailChanged) && passwordFieldsFilled -> {
+                if (validatePasswordChange(oldPass, newPass, confirmNewPass)) {
+                    updateProfileAndPassword(name, email, oldPass, newPass)
                 }
+            }
 
-                // Only password change attempted
-                passwordFieldsFilled && !nameChanged && !emailChanged -> {
-                    if (validatePasswordChange(oldPass, newPass, confirmNewPass)) {
-                        saveAllChanges(name, email, newPass)
-                        Toast.makeText(this, "Changes Saved", Toast.LENGTH_SHORT).show()
-                    }
+            // Only password change attempted
+            passwordFieldsFilled && !nameChanged && !emailChanged -> {
+                if (validatePasswordChange(oldPass, newPass, confirmNewPass)) {
+                    updatePasswordOnly(oldPass, newPass)
                 }
+            }
 
-                // Only name/email changes
-                (nameChanged || emailChanged) && !passwordFieldsFilled -> {
-                    saveAllChanges(name, email, null)
-                    Toast.makeText(this, "Changes Saved", Toast.LENGTH_SHORT).show()
-                }
+            // Only name/email changes
+            (nameChanged || emailChanged) && !passwordFieldsFilled -> {
+                updateProfileOnly(name, email)
+            }
 
-                // Both name/email and password changes
-                else -> {
-                    if (validatePasswordChange(oldPass, newPass, confirmNewPass)) {
-                        saveAllChanges(name, email, newPass)
-                        Toast.makeText(this, "Changes Saved", Toast.LENGTH_SHORT).show()
+            else -> {
+                Toast.makeText(this, "No changes detected", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun updatePasswordOnly(oldPass: String, newPass: String) {
+        if (userid.isNullOrEmpty()) {
+            Toast.makeText(this, "User ID not found", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        DatabaseHelper.updateUserPassword(userid!!, oldPass, newPass) { success, errorMessage ->
+            runOnUiThread {
+                if (success) {
+                    Toast.makeText(this, "Password updated successfully", Toast.LENGTH_SHORT).show()
+                    clearPasswordFields()
+                    checkIfChangesMade()
+                } else {
+                    when {
+                        errorMessage?.contains("incorrect", ignoreCase = true) == true -> {
+                            viewBinding.oldPassEtvp.error = "Incorrect current password"
+                        }
+                        errorMessage?.contains("not found", ignoreCase = true) == true -> {
+                            Toast.makeText(this, "User not found", Toast.LENGTH_SHORT).show()
+                        }
+                        else -> {
+                            viewBinding.newPassEtvp.error = "Update failed"
+                            Toast.makeText(this, "Failed to update password. Please try again.", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             }
         }
     }
 
+    private fun updateProfileOnly(name: String, email: String) {
+        if (userid.isNullOrEmpty()) {
+            Toast.makeText(this, "User ID not found", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        DatabaseHelper.updateUserInfo(userid!!, name, email) { success, errorMessage ->
+            runOnUiThread {
+                if (success) {
+                    editLoginState(name, email)
+                    Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show()
+                    checkIfChangesMade()
+                } else {
+                    Toast.makeText(this, errorMessage ?: "Failed to update profile", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun updateProfileAndPassword(name: String, email: String, oldPass: String, newPass: String) {
+        if (userid.isNullOrEmpty()) {
+            Toast.makeText(this, "User ID not found", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        DatabaseHelper.updateUserPassword(userid!!, oldPass, newPass) { success, errorMessage ->
+            runOnUiThread {
+                if (success) {
+                    DatabaseHelper.updateUserInfo(userid!!, name, email) { profileSuccess, profileError ->
+                        runOnUiThread {
+                            if (profileSuccess) {
+                                editLoginState(name, email)
+                                Toast.makeText(this, "Profile and password updated successfully", Toast.LENGTH_SHORT).show()
+                                clearPasswordFields()
+                                checkIfChangesMade()
+                            } else {
+                                Toast.makeText(this, "Password updated but profile update failed: ${profileError ?: "Unknown error"}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                } else {
+                    // Password update failed - don't update profile
+                    when {
+                        errorMessage?.contains("incorrect", ignoreCase = true) == true -> {
+                            viewBinding.oldPassEtvp.error = "Incorrect current password"
+                        }
+                        errorMessage?.contains("not found", ignoreCase = true) == true -> {
+                            Toast.makeText(this, "User not found", Toast.LENGTH_SHORT).show()
+                        }
+                        else -> {
+                            viewBinding.newPassEtvp.error = "Update failed"
+                            Toast.makeText(this, "Failed to update password. Please try again.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+        }
+    }
+    private fun setupEditTextListeners() {
+        val textWatcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                checkIfChangesMade()
+            }
+        }
+
+        viewBinding.nameEtv.addTextChangedListener(textWatcher)
+        viewBinding.emailEtv.addTextChangedListener(textWatcher)
+        viewBinding.oldPassEtvp.addTextChangedListener(textWatcher)
+        viewBinding.newPassEtvp.addTextChangedListener(textWatcher)
+        viewBinding.confirmNewPassEtvp.addTextChangedListener(textWatcher)
+    }
+
+    private fun checkIfChangesMade() {
+        val name = viewBinding.nameEtv.text.toString().trim()
+        val email = viewBinding.emailEtv.text.toString().trim()
+        val oldPass = viewBinding.oldPassEtvp.text.toString().trim()
+        val newPass = viewBinding.newPassEtvp.text.toString().trim()
+        val confirmNewPass = viewBinding.confirmNewPassEtvp.text.toString().trim()
+
+        val hasChanges = name != userName ||
+                email != userEmail ||
+                oldPass.isNotEmpty() ||
+                newPass.isNotEmpty() ||
+                confirmNewPass.isNotEmpty()
+
+        viewBinding.epSaveChangesBtn.isEnabled = hasChanges
+        viewBinding.epSaveChangesBtn.alpha = if (hasChanges) 1.0f else 0.5f
+    }
+
     private fun validatePasswordChange(oldPass: String, newPass: String, confirmNewPass: String): Boolean {
+        // Clear previous errors
+        viewBinding.oldPassEtvp.error = null
+        viewBinding.newPassEtvp.error = null
+        viewBinding.confirmNewPassEtvp.error = null
+
         return when {
             oldPass.isEmpty() || newPass.isEmpty() || confirmNewPass.isEmpty() -> {
                 Toast.makeText(this, "Please fill all password fields", Toast.LENGTH_SHORT).show()
                 false
             }
 
-            oldPass != originalPassword -> { // Replace with actual password check
-                Toast.makeText(this, "Old password is incorrect", Toast.LENGTH_SHORT).show()
+            newPass.length < 8 -> {
+                viewBinding.newPassEtvp.error = "Must be at least 8 characters"
+                Toast.makeText(this, "Password must be at least 8 characters", Toast.LENGTH_SHORT).show()
                 false
             }
 
             newPass != confirmNewPass -> {
+                viewBinding.confirmNewPassEtvp.error = "Passwords do not match"
                 Toast.makeText(this, "New passwords do not match", Toast.LENGTH_SHORT).show()
                 false
             }
 
-            newPass.length < 8 -> {
-                Toast.makeText(this, "Password must be at least 8 characters", Toast.LENGTH_SHORT)
-                    .show()
+            oldPass == newPass -> {
+                viewBinding.newPassEtvp.error = "New password must be different from old password"
+                Toast.makeText(this, "New password must be different from old password", Toast.LENGTH_SHORT).show()
                 false
             }
 
             else -> true
         }
-
     }
 
-    private fun saveAllChanges(name: String, email: String, newPassword: String?) {
-        // Save name and email
-        var newname: String = ""
-        var newemail: String = ""
-
-        if (name.isNotEmpty())
-            newname = "Adrian"
-
-
-        if (email.isNotEmpty())
-            newemail = "sample@gmail.com"
-
-        Log.d("DEBUG", "New Name: $newname")
-        Log.d("DEBUG", "New Email: $newemail")
-
-        //newPassword?.let { savePassword(it) }
+    private fun clearPasswordFields() {
+        viewBinding.oldPassEtvp.text?.clear()
+        viewBinding.newPassEtvp.text?.clear()
+        viewBinding.confirmNewPassEtvp.text?.clear()
+        viewBinding.oldPassEtvp.error = null
+        viewBinding.newPassEtvp.error = null
+        viewBinding.confirmNewPassEtvp.error = null
     }
 
     private fun setupNavBar(){
@@ -126,14 +256,20 @@ class EditProfileActivity : ComponentActivity() {
             val intent = Intent(this, ProfileActivity::class.java)
             startActivity(intent)
         }
-//      viewBinding.savedBtnLl.setOnClickListener {
-//          val intent = Intent(this, SavedActivity::class.java)
-//          startActivity(intent)
-//      }
         viewBinding.homeBtnLl.setOnClickListener {
             val intent = Intent(this, HomeActivity::class.java)
             startActivity(intent)
         }
     }
 
+    private fun editLoginState(userName: String? = null, userEmail: String? = null) {
+        val editor = sp.edit()
+        userName?.let { editor.putString("userName", it) }
+        userEmail?.let { editor.putString("userEmail", it) }
+        editor.apply()
+
+        // Update local variables
+        this.userName = userName ?: this.userName
+        this.userEmail = userEmail ?: this.userEmail
+    }
 }

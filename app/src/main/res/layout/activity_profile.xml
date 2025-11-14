@@ -81,7 +81,7 @@
             android:scaleType="fitCenter"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:src="@drawable/edit_profile" />
+            android:src="@drawable/edit_profile" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

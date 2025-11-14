@@ -40,7 +40,7 @@ class HomeViewHolder(private var viewBinding: HpRecipeCardLayoutBinding) : Recyc
         }
     }
     fun getRating(recipeid : String){
-        RecipeDatabaseHelper.fetchRecipeRating(recipeid) { rating ->
+        DatabaseHelper.fetchRecipeRating(recipeid) { rating ->
             viewBinding.hpRatingTv.text = "$rating / 5.0"
         }
     }
