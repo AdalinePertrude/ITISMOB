@@ -177,14 +177,14 @@ class DatabaseHelper {
                     }
 
                     val averageRating = if (ratingCount > 0) totalRating / ratingCount else 0.0
-                    println("DEBUG: Average rating for recipe $recipeid: $averageRating ($ratingCount ratings)")
+                    //println("DEBUG: Average rating for recipe $recipeid: $averageRating ($ratingCount ratings)")
 
                     // Update the average rating in the recipe document
                     updateRecipeAvgRating(recipeid, averageRating) { success ->
                         if (success) {
-                            println("DEBUG: Successfully updated average rating in recipe document")
+                            //println("DEBUG: Successfully updated average rating in recipe document")
                         } else {
-                            println("DEBUG: Failed to update average rating in recipe document")
+                            //println("DEBUG: Failed to update average rating in recipe document")
                         }
                         // Return the average rating regardless of update success
                         onComplete(averageRating)
@@ -226,11 +226,11 @@ class DatabaseHelper {
                 .document(recipeid)
                 .update("rating", avgRating)
                 .addOnSuccessListener {
-                    println("DEBUG: Average rating updated to $avgRating for recipe $recipeid")
+                    // println("DEBUG: Average rating updated to $avgRating for recipe $recipeid")
                     onComplete(true)
                 }
                 .addOnFailureListener { exception ->
-                    println("ERROR: Failed to update average rating: ${exception.message}")
+                    // println("ERROR: Failed to update average rating: ${exception.message}")
                     onComplete(false)
                 }
         }

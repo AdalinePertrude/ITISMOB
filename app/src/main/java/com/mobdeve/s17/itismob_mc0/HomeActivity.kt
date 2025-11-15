@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.icu.text.SimpleDateFormat
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.AdapterView
@@ -45,6 +46,7 @@ class HomeActivity : ComponentActivity() {
         setupFAB()
         setupNavBar()
         loadDataFromFirebase() // Load data from Firebase after UI setup
+        debugDatabaseContent()
     }
 
     private fun loadDataFromFirebase() {
@@ -350,4 +352,20 @@ class HomeActivity : ComponentActivity() {
         backPressedCallback.remove()
     }
 
+    private fun debugDatabaseContent() {
+        val repository = RecipeRepository(this)
+        val allRecipes = repository.getAllRecipes()
+
+        Log.d("DatabaseDebug", "=== DATABASE CONTENT ===")
+        Log.d("DatabaseDebug", "Total recipes: ${allRecipes.size}")
+
+        allRecipes.forEach { recipe ->
+            Log.d("DatabaseDebug", "Recipe: ${recipe.label}")
+            Log.d("DatabaseDebug", "  ID: ${recipe.id}")
+            Log.d("DatabaseDebug", "  Image ID: ${recipe.imageId}")
+            Log.d("DatabaseDebug", "  Is Local: ${!recipe.imageId.startsWith("http")}")
+            Log.d("DatabaseDebug", "  ---")
+        }
+        Log.d("DatabaseDebug", "=== END DATABASE DEBUG ===")
+    }
 }
