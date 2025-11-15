@@ -1,13 +1,19 @@
 package com.mobdeve.s17.itismob_mc0
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -15,6 +21,7 @@ import com.mobdeve.s17.itismob_mc0.databinding.CalendarPageBinding
 import java.text.SimpleDateFormat
 import java.util.ArrayList
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 class CalendarActivity : ComponentActivity(), OnItemListener {
@@ -30,6 +37,19 @@ class CalendarActivity : ComponentActivity(), OnItemListener {
 
     private lateinit var addedDishes_rv : RecyclerView
     private val addedRecipeData : ArrayList<RecipeModel> = ArrayList()
+
+    private lateinit var notificationScheduler: NotificationScheduler
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Permission granted - you can schedule notifications
+            Toast.makeText(this, "Notification permission granted", Toast.LENGTH_SHORT).show()
+        } else {
+            // Permission denied - handle accordingly
+            Toast.makeText(this, "Notification permission denied", Toast.LENGTH_LONG).show()
+        }
+    }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,10 +72,13 @@ class CalendarActivity : ComponentActivity(), OnItemListener {
         nextMonthBtn.setOnClickListener {
             nextMonthAction()
         }
-
         setMonthView()
         setAddedRecipe()
         setupNavBar()
+
+        viewBinding.root.postDelayed({
+            askNotificationPermission()
+        }, 500)
     }
 
     private fun setMonthView(){
@@ -106,10 +129,78 @@ class CalendarActivity : ComponentActivity(), OnItemListener {
             viewBinding.dailyPlannerLl.visibility = View.VISIBLE
             viewBinding.plannerDateTv.text = " $dayText ${SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(selectedDate.time)}"
             viewBinding.dailyPlannerAddBtn.setOnClickListener {
-                Toast.makeText(this, "add button clicked", Toast.LENGTH_SHORT).show()
+                // Show recipe selection dialog or start activity
+                showRecipeSelectionDialog(dayText)
             }
         }
     }
+
+    private fun showRecipeSelectionDialog(selectedDay: String) {
+        // For now, let's create a mock recipe to test the notification system
+        val testRecipe = RecipeModel(
+            id = "test_recipe_1",
+            author = "Test Author",
+            calories = 350,
+            cautions = emptyList(),
+            createdAt = SimpleDateFormat("MMM dd, yyyy 'at' hh:mm a", Locale.getDefault()).format(Date()),
+            cuisineType = listOf("Test Cuisine"),
+            dietLabels = emptyList(),
+            dishType = listOf("Main Course"),
+            healthLabels = emptyList(),
+            imageId = "",
+            ingredients = listOf("Ingredient 1", "Ingredient 2"),
+            instructions = listOf("Step 1", "Step 2"),
+            label = "Test Recipe",
+            mealType = listOf("Dinner"),
+            prepTime = 30,
+            rating = 4.5,
+            serving = 2
+        )
+
+        addRecipeToCalendar(testRecipe, selectedDay)
+    }
+
+    private fun addRecipeToCalendar(recipe: RecipeModel, selectedDay: String) {
+        try {
+            // Create calendar instance for the selected day with current time
+            val selectedCalendar = Calendar.getInstance().apply {
+                set(Calendar.YEAR, selectedDate.get(Calendar.YEAR))
+                set(Calendar.MONTH, selectedDate.get(Calendar.MONTH))
+                set(Calendar.DAY_OF_MONTH, selectedDay.toInt())
+                // Current time will be preserved for the notification
+            }
+
+            // Create scheduled recipe wrapper
+            val scheduledRecipe = ScheduledRecipe.createFromRecipe(recipe, selectedCalendar)
+
+            // Add to your data list
+            addedRecipeData.add(recipe)
+
+            // Schedule notification (exactly 1 day before the added time)
+            if (::notificationScheduler.isInitialized) {
+                notificationScheduler.scheduleRecipeNotification(scheduledRecipe)
+            }
+
+            // Update UI
+            addedDishes_rv.adapter?.notifyItemInserted(addedRecipeData.size - 1)
+
+            // Show confirmation with time info
+            val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
+            val notificationTime = scheduledRecipe.getNotificationTime()
+            val notificationTimeFormatted = timeFormat.format(Date(notificationTime))
+
+            Toast.makeText(
+                this,
+                "${recipe.label} added! Reminder set for $notificationTimeFormatted tomorrow",
+                Toast.LENGTH_LONG
+            ).show()
+
+        } catch (e: Exception) {
+            Log.e("CalendarActivity", "Error adding recipe to calendar", e)
+            Toast.makeText(this, "Error adding recipe", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
      fun onItemLongClick(position: Int, dayText: String) {
         if (dayText.isNotEmpty()) {
@@ -184,12 +275,31 @@ class CalendarActivity : ComponentActivity(), OnItemListener {
 
     // Add this method to handle recipe deletion
     private fun deleteRecipe(position: Int) {
-        val adapter = addedDishes_rv.adapter as? AddedRecipeAdapter
-        adapter?.removeItem(position)
+        try {
+            val recipe = addedRecipeData[position]
 
-        // Reset delete mode
-        resetDeleteMode()
-        Toast.makeText(this, "Recipe removed", Toast.LENGTH_SHORT).show()
+            // Cancel the notification if scheduled
+            if (::notificationScheduler.isInitialized) {
+                // You'll need to track which ScheduledRecipe corresponds to which RecipeModel
+                // For now, we'll create a temporary ScheduledRecipe to cancel
+                val tempScheduledRecipe = ScheduledRecipe(
+                    recipe = recipe,
+                    scheduledDateTime = Date() // This would need to be the actual scheduled date
+                )
+                notificationScheduler.cancelRecipeNotification(tempScheduledRecipe)
+            }
+
+            val adapter = addedDishes_rv.adapter as? AddedRecipeAdapter
+            adapter?.removeItem(position)
+
+            // Reset delete mode
+            resetDeleteMode()
+            Toast.makeText(this, "Recipe removed", Toast.LENGTH_SHORT).show()
+
+        } catch (e: Exception) {
+            Log.e("CalendarActivity", "Error deleting recipe", e)
+            Toast.makeText(this, "Error removing recipe", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun deleteItem(position: Int) {
@@ -288,5 +398,32 @@ class CalendarActivity : ComponentActivity(), OnItemListener {
             // val intent = Intent(this, SavedActivity::class.java)
             // startActivity(intent)
         }
+    }
+
+    private fun askNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13+ - need to request permission
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                // Permission already granted
+                setupNotificationScheduling() // Proceed with your notification setup
+            } else {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        } else {
+            // Android 12 and below - permission granted by default
+            setupNotificationScheduling() // Proceed with your notification setup
+        }
+    }
+
+    private fun setupNotificationScheduling() {
+        // Initialize your notification scheduler here
+        // This will work on all Android versions
+        Toast.makeText(this, "✅ Recipe reminders enabled!", Toast.LENGTH_SHORT).show()
+
+        notificationScheduler = NotificationScheduler(this)
     }
 }
