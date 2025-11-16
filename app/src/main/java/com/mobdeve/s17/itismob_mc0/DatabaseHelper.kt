@@ -316,6 +316,112 @@ class DatabaseHelper {
             }
         }
 
+        fun fetchRecipesByAuthor(authorId: String, callback: (List<RecipeModel>) -> Unit) {
+            val db = Firebase.firestore
+            db.collection("recipes")
+                .whereEqualTo("authorId", authorId)
+                .get()
+                .addOnSuccessListener { documents ->
+                    val recipes = mutableListOf<RecipeModel>()
+                    for (document in documents) {
+                        val recipe = document.toObject(RecipeModel::class.java)
+                        recipes.add(recipe)
+                    }
+                    callback(recipes)
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("DatabaseHelper", "Error fetching recipes by author", exception)
+                    callback(emptyList())
+                }
+        }
 
+        fun addRecipe(recipe: RecipeModel, onComplete: (Boolean) -> Unit) {
+            val db = Firebase.firestore
+
+            val recipeData = hashMapOf(
+                "id" to recipe.id,
+                "author" to recipe.author,
+                "authorId" to recipe.author,
+
+                "calories" to recipe.calories,
+                "cautions" to recipe.cautions,
+
+
+                "createdAt" to FieldValue.serverTimestamp(),
+
+                "cuisineType" to recipe.cuisineType,
+                "dietLabels" to recipe.dietLabels,
+                "dishType" to recipe.dishType,
+                "healthLabels" to recipe.healthLabels,
+
+                "image" to recipe.imageId,
+                "ingredientLines" to recipe.ingredients,
+                "instructions" to recipe.instructions,
+
+                "label" to recipe.label,
+                "mealType" to recipe.mealType,
+                "preptime" to recipe.prepTime,
+
+                "rating" to recipe.rating,
+                "yield" to recipe.serving,
+
+                "isPublished" to recipe.isPublished,
+                "isSaved" to recipe.isSaved
+            )
+
+            db.collection("recipes")
+                .document(recipe.id)
+                .set(recipeData)
+                .addOnSuccessListener {
+                    Log.d("DB", "Recipe successfully added!")
+                    onComplete(true)
+                }
+                .addOnFailureListener { e ->
+                    Log.e("DB", "Error adding recipe", e)
+                    onComplete(false)
+                }
+        }
+        fun deleteRecipe(recipeId: String, onComplete: (Boolean) -> Unit) {
+            val db = Firebase.firestore
+
+            db.collection("recipes")
+                .document(recipeId)
+                .delete()
+                .addOnSuccessListener {
+                    Log.d("DB", "Recipe successfully deleted")
+                    onComplete(true)
+                }
+                .addOnFailureListener { e ->
+                    Log.e("DB", "Error deleting recipe", e)
+                    onComplete(false)
+                }
+        }
+
+        fun fetchSavedRecipes(callback: (List<RecipeModel>) -> Unit) {
+            Firebase.firestore.collection("recipes")
+                .whereEqualTo("isSaved", true)
+                .get()
+                .addOnSuccessListener { docs ->
+                    val list = docs.map { it.toObject(RecipeModel::class.java) }
+                    callback(list)
+                }
+                .addOnFailureListener { callback(emptyList()) }
+        }
+
+        fun saveRecipe(id: String, callback: (Boolean) -> Unit) {
+            Firebase.firestore.collection("recipes")
+                .document(id)
+                .update("isSaved", true)
+                .addOnSuccessListener { callback(true) }
+                .addOnFailureListener { callback(false) }
+        }
+
+        fun unsaveRecipe(id: String, callback: (Boolean) -> Unit) {
+            Firebase.firestore.collection("recipes")
+                .document(id)
+                .update("isSaved", false)
+                .addOnSuccessListener { callback(true) }
+                .addOnFailureListener { callback(false) }
+        }
     }
 }
