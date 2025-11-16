@@ -7,8 +7,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.mobdeve.s17.itismob_mc0.databinding.SavedLayoutBinding
 
-class SavedRecipeViewHolder(private val binding: SavedLayoutBinding, private val context: android.content.Context)
-    : RecyclerView.ViewHolder(binding.root) {
+class SavedRecipeViewHolder(
+    private val binding: SavedLayoutBinding,
+    private val context: android.content.Context
+) : RecyclerView.ViewHolder(binding.root) {
 
     private val recipeImageIv: ImageView = binding.srDishimageIv
     private val recipeNameTv: TextView = binding.srDishnameTv
@@ -18,8 +20,8 @@ class SavedRecipeViewHolder(private val binding: SavedLayoutBinding, private val
     private val saveBtnIb: ImageButton = binding.srSaveBtn
     private val calendarBtn: ImageButton = binding.srAddBtn
 
-    // Create local DB helper instance
-    private val localDb = LocalDatabaseHelper(context)
+
+    private val localDb = SQLiteDatabaseHandler(context)
 
     fun bindData(recipe: RecipeModel) {
         recipeNameTv.text = recipe.label
@@ -27,7 +29,7 @@ class SavedRecipeViewHolder(private val binding: SavedLayoutBinding, private val
         timeServingTv.text = "${recipe.prepTime} mins | Serving for ${recipe.serving}"
         ratingTv.text = String.format("%.1f / 5.0", recipe.rating)
 
-        Glide.with(itemView.context)
+        Glide.with(context)
             .load(recipe.imageId)
             .placeholder(R.drawable.ic_launcher_background)
             .into(recipeImageIv)
@@ -39,10 +41,10 @@ class SavedRecipeViewHolder(private val binding: SavedLayoutBinding, private val
         saveBtnIb.setOnClickListener {
             if (saveBtnIb.isSelected) {
                 saveBtnIb.isSelected = false
-                localDb.unsaveRecipeLocal(recipe.id)
+                localDb.unsaveRecipe(recipe.id)
             } else {
                 saveBtnIb.isSelected = true
-                localDb.saveRecipeLocal(recipe.id) 
+                localDb.saveRecipe(recipe.id)
             }
             updateSaveButtonVisual()
         }

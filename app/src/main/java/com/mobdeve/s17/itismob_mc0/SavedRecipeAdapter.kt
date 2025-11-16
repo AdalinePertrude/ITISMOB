@@ -1,11 +1,13 @@
 package com.mobdeve.s17.itismob_mc0
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.mobdeve.s17.itismob_mc0.databinding.SavedLayoutBinding
 
 class SavedRecipeAdapter(
+    private val context: Context,
     private val data: ArrayList<RecipeModel>
 ) : RecyclerView.Adapter<SavedRecipeViewHolder>() {
 
@@ -21,7 +23,7 @@ class SavedRecipeAdapter(
             parent,
             false
         )
-        return SavedRecipeViewHolder(binding)
+        return SavedRecipeViewHolder(binding, context)
     }
 
     override fun onBindViewHolder(holder: SavedRecipeViewHolder, position: Int) {

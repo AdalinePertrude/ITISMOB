@@ -17,10 +17,14 @@ class SavedRecipeActivity : ComponentActivity() {
     private lateinit var savedAdapter: SavedRecipeAdapter
     private val savedRecipeData: ArrayList<RecipeModel> = ArrayList()
 
+    private lateinit var dbHandler: SQLiteDatabaseHandler // local DB instance
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = SavedPageBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        dbHandler = SQLiteDatabaseHandler(this) // initialize local DB
 
         setupRecyclerView()
         setupBackButton()
@@ -56,8 +60,8 @@ class SavedRecipeActivity : ComponentActivity() {
                 val pos = vh.adapterPosition
                 val recipe = savedRecipeData[pos]
 
-                // Local DB unsave (NO callback)
-                DatabaseHelper.unsaveRecipeLocal(recipe.id)
+                // Unsave in local DB
+                dbHandler.unsaveRecipe(recipe.id)
 
                 // Remove from list
                 savedRecipeData.removeAt(pos)
@@ -76,7 +80,8 @@ class SavedRecipeActivity : ComponentActivity() {
 
     private fun loadSavedRecipes() {
         Thread {
-            val recipes = DatabaseHelper.getSavedRecipesLocal()
+            // Fetch saved recipes from local DB
+            val recipes = dbHandler.getSavedRecipes()
 
             runOnUiThread {
                 savedRecipeData.clear()

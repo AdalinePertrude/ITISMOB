@@ -1,6 +1,8 @@
 package com.mobdeve.s17.itismob_mc0
 
+import android.content.ContentValues
 import android.content.Context
+import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
@@ -22,7 +24,7 @@ class SQLiteDatabaseHandler(context: Context) : SQLiteOpenHelper(context, DATABA
         const val RECIPE_PREP_TIME = "prep_time"
         const val RECIPE_RATING = "rating"
         const val RECIPE_SERVING = "serving"
-        const val RECIPE_IS_SAVED = "is_saved" // ADDED THIS MISSING COLUMN
+        const val RECIPE_IS_SAVED = "is_saved"
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -48,5 +50,68 @@ class SQLiteDatabaseHandler(context: Context) : SQLiteOpenHelper(context, DATABA
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL("DROP TABLE IF EXISTS $RECIPE_TABLE")
         onCreate(db)
+    }
+
+
+    fun getSavedRecipes(): List<RecipeModel> {
+        val db = this.readableDatabase
+        val cursor: Cursor = db.query(
+            RECIPE_TABLE,
+            null,
+            "$RECIPE_IS_SAVED = ?",
+            arrayOf("1"),
+            null,
+            null,
+            null
+        )
+
+        val list = ArrayList<RecipeModel>()
+        if (cursor.moveToFirst()) {
+            do {
+                list.add(cursorToRecipe(cursor))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return list
+    }
+
+    fun saveRecipe(recipeId: String) {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put(RECIPE_IS_SAVED, 1)
+        }
+        db.update(RECIPE_TABLE, values, "$RECIPE_RECIPE_ID = ?", arrayOf(recipeId))
+    }
+
+    fun unsaveRecipe(recipeId: String) {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put(RECIPE_IS_SAVED, 0)
+        }
+        db.update(RECIPE_TABLE, values, "$RECIPE_RECIPE_ID = ?", arrayOf(recipeId))
+    }
+
+    private fun cursorToRecipe(cursor: Cursor): RecipeModel {
+        return RecipeModel(
+            id = cursor.getString(cursor.getColumnIndexOrThrow(RECIPE_RECIPE_ID)),
+            author = cursor.getString(cursor.getColumnIndexOrThrow(RECIPE_AUTHOR)) ?: "",
+            label = cursor.getString(cursor.getColumnIndexOrThrow(RECIPE_LABEL)) ?: "",
+            imageId = cursor.getString(cursor.getColumnIndexOrThrow(RECIPE_IMAGE_ID)) ?: "",
+            prepTime = cursor.getInt(cursor.getColumnIndexOrThrow(RECIPE_PREP_TIME)),
+            serving = cursor.getInt(cursor.getColumnIndexOrThrow(RECIPE_SERVING)),
+            rating = cursor.getDouble(cursor.getColumnIndexOrThrow(RECIPE_RATING)),
+            isSaved = cursor.getInt(cursor.getColumnIndexOrThrow(RECIPE_IS_SAVED)) == 1,
+            calories = cursor.getInt(cursor.getColumnIndexOrThrow(RECIPE_CALORIES)),
+            cautions = emptyList(),
+            createdAt = cursor.getString(cursor.getColumnIndexOrThrow(RECIPE_CREATED_AT)) ?: "",
+            cuisineType = emptyList(),
+            dietLabels = emptyList(),
+            dishType = emptyList(),
+            healthLabels = emptyList(),
+            ingredients = emptyList(),
+            instructions = emptyList(),
+            mealType = emptyList(),
+            isPublished = false
+        )
     }
 }
