@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools">
+    android:layout_height="match_parent">
 
     <androidx.cardview.widget.CardView
-
-        android:id="@+id/dish_cv"
+        android:id="@+id/sr_card_cv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardBackgroundColor="@android:color/white"
@@ -15,16 +14,14 @@
         app:cardElevation="4dp"
         app:cardUseCompatPadding="true">
 
-
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/dish_cl"
+            android:id="@+id/sr_card_cl"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:paddingBottom="8dp">
 
-
             <ImageView
-                android:id="@+id/hp_dishimage_iv"
+                android:id="@+id/sr_dishimage_iv"
                 tools:srcCompat="@drawable/spaghetti"
                 android:layout_width="0dp"
                 android:layout_height="220dp"
@@ -34,14 +31,13 @@
                 android:foreground="@color/black_semi_transparent"
                 android:foregroundTint="#1A000000"
                 android:scaleType="centerCrop"
-                app:layout_constraintBottom_toTopOf="@+id/hp_dishname_tv"
+                app:layout_constraintBottom_toTopOf="@+id/sr_dishname_tv"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/hp_time_serving_tv"
+                android:id="@+id/sr_time_serving_tv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -50,29 +46,25 @@
                 android:textColor="#FFFFFF"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="@+id/hp_dishimage_iv"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.045"
+                app:layout_constraintBottom_toBottomOf="@+id/sr_dishimage_iv"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="1.0" />
+                app:layout_constraintEnd_toEndOf="parent" />
 
             <TextView
-                android:id="@+id/hp_dishname_tv"
+                android:id="@+id/sr_dishname_tv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:layout_marginTop="4dp"
-                android:layout_weight="1"
                 android:text="Dishname"
                 android:textColor="@color/text_color_brown"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/hp_dishimage_iv" />
+                app:layout_constraintTop_toBottomOf="@+id/sr_dishimage_iv" />
 
             <TextView
-                android:id="@+id/textView8"
+                android:id="@+id/sr_by_text_tv"
                 android:layout_width="20dp"
                 android:layout_height="21dp"
                 android:layout_marginStart="100dp"
@@ -81,41 +73,38 @@
                 android:textColor="@color/text_color_brown"
                 android:textSize="16sp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/hp_dishimage_iv" />
+                app:layout_constraintTop_toBottomOf="@+id/sr_dishimage_iv" />
 
             <TextView
-                android:id="@+id/author_tv"
+                android:id="@+id/sr_author_tv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="125dp"
                 android:layout_marginTop="4dp"
-                android:text="TextView"
+                android:text="Author"
                 android:textColor="@color/text_color_brown"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/hp_dishimage_iv" />
+                app:layout_constraintTop_toBottomOf="@+id/sr_dishimage_iv" />
 
             <ImageButton
-                android:id="@+id/hp_save_btn"
+                android:id="@+id/sr_save_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
-                android:layout_marginBottom="156dp"
                 android:background="@drawable/savedbtn_design"
                 android:contentDescription="Save Button"
                 android:src="@drawable/ic_save"
                 android:tint="#000000"
-                app:layout_constraintBottom_toBottomOf="@+id/hp_dishimage_iv"
+                app:layout_constraintBottom_toBottomOf="@+id/sr_dishimage_iv"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="1.0"
-                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.0" />
+                app:layout_constraintVertical_bias="0.006" />
 
             <TextView
-                android:id="@+id/hp_rating_tv"
+                android:id="@+id/sr_rating_tv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
@@ -124,22 +113,20 @@
                 android:textColor="@color/text_color_brown"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/hp_dishimage_iv"
-                app:layout_constraintVertical_bias="0.0" />
+                app:layout_constraintTop_toBottomOf="@+id/sr_dishimage_iv"
+                app:layout_constraintEnd_toEndOf="parent" />
 
             <ImageButton
-                android:id="@+id/hp_add_btn"
+                android:id="@+id/sr_add_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:layout_marginEnd="4dp"
-                app:layout_constraintEnd_toStartOf="@+id/hp_save_btn"
+                app:layout_constraintEnd_toStartOf="@+id/sr_save_btn"
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@android:drawable/ic_menu_today" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
 
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.cardview.widget.CardView>
 </androidx.constraintlayout.widget.ConstraintLayout>
