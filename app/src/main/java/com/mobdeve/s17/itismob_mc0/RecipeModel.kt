@@ -18,5 +18,6 @@ data class RecipeModel(
     val prepTime: Int,
     val rating: Double,
     val serving: Int,
+    val isPublished: Boolean = false,
     var isSaved: Boolean = false
 )

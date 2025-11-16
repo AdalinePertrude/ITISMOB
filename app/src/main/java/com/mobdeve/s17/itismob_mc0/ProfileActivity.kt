@@ -38,6 +38,12 @@ class ProfileActivity : ComponentActivity() {
             val intent = Intent(this, EditProfileActivity::class.java)
             startActivity(intent)
         }
+
+
+        publishedRecipes.setOnClickListener {
+            val intent = Intent(this, PublishedRecipeActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun logoutUser() {
@@ -52,7 +58,6 @@ class ProfileActivity : ComponentActivity() {
             .show()
     }
 
-
     private fun performLogout() {
         val sp: SharedPreferences = getSharedPreferences(USER_PREFERENCE, MODE_PRIVATE)
         val editor = sp.edit()
@@ -66,5 +71,4 @@ class ProfileActivity : ComponentActivity() {
         startActivity(intent)
         finish()
     }
-
 }
