@@ -46,24 +46,27 @@ class SavedRecipeActivity : ComponentActivity() {
         val itemTouchHelper = ItemTouchHelper(object :
             ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
 
-            override fun onMove(rv: RecyclerView, vh: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean = false
+            override fun onMove(
+                rv: RecyclerView,
+                vh: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean = false
 
             override fun onSwiped(vh: RecyclerView.ViewHolder, direction: Int) {
                 val pos = vh.adapterPosition
                 val recipe = savedRecipeData[pos]
 
-                DatabaseHelper.unsaveRecipe(recipe.id) { success ->
-                    if (success) {
-                        savedRecipeData.removeAt(pos)
-                        savedAdapter.notifyItemRemoved(pos)
+                // Local DB unsave (NO callback)
+                DatabaseHelper.unsaveRecipeLocal(recipe.id)
 
-                        if (savedRecipeData.isEmpty()) {
-                            binding.noSavedText.visibility = View.VISIBLE
-                            savedRecipesRv.visibility = View.GONE
-                        }
-                    } else {
-                        savedAdapter.notifyItemChanged(pos)
-                    }
+                // Remove from list
+                savedRecipeData.removeAt(pos)
+                savedAdapter.notifyItemRemoved(pos)
+
+                // Handle empty state
+                if (savedRecipeData.isEmpty()) {
+                    binding.noSavedText.visibility = View.VISIBLE
+                    savedRecipesRv.visibility = View.GONE
                 }
             }
         })
@@ -72,7 +75,9 @@ class SavedRecipeActivity : ComponentActivity() {
     }
 
     private fun loadSavedRecipes() {
-        DatabaseHelper.fetchSavedRecipes { recipes ->
+        Thread {
+            val recipes = DatabaseHelper.getSavedRecipesLocal()
+
             runOnUiThread {
                 savedRecipeData.clear()
                 savedRecipeData.addAll(recipes)
@@ -86,7 +91,7 @@ class SavedRecipeActivity : ComponentActivity() {
                     savedRecipesRv.visibility = View.VISIBLE
                 }
             }
-        }
+        }.start()
     }
 
     private fun setupBackButton() {

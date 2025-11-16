@@ -131,6 +131,7 @@ class CalendarActivity : ComponentActivity(), OnItemListener {
             viewBinding.dailyPlannerAddBtn.setOnClickListener {
                 // Show recipe selection dialog or start activity
                 showRecipeSelectionDialog(dayText)
+
             }
         }
     }
@@ -218,6 +219,21 @@ class CalendarActivity : ComponentActivity(), OnItemListener {
             viewBinding.deleteArea.visibility = View.VISIBLE
 
             Toast.makeText(this, "Drag to delete area to remove", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+    private fun loadScheduledRecipes(dateKey: String) {
+
+        val sp = getSharedPreferences("USER_PREFERENCE", MODE_PRIVATE)
+        val userId = sp.getString("userId", null) ?: return
+
+        DatabaseHelper.fetchRecipesScheduledOnDate(userId, dateKey) { recipes ->
+            runOnUiThread {
+                addedRecipeData.clear()
+                addedRecipeData.addAll(recipes)
+                addedDishes_rv.adapter?.notifyDataSetChanged()
+            }
         }
     }
 

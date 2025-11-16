@@ -1,5 +1,7 @@
 package com.mobdeve.s17.itismob_mc0
 
+import android.content.Context
+import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FieldValue
@@ -397,31 +399,71 @@ class DatabaseHelper {
                 }
         }
 
-        fun fetchSavedRecipes(callback: (List<RecipeModel>) -> Unit) {
-            Firebase.firestore.collection("recipes")
-                .whereEqualTo("isSaved", true)
+
+
+        fun addRecipeToCalendar(userid: String, recipeId: String, year: Int, month: Int, day: Int, callback: (Boolean) -> Unit) {
+            val db = Firebase.firestore
+
+            val dateKey = "$year-${month + 1}-$day" // example: 2025-11-16
+
+            val data = hashMapOf(
+                "recipeId" to recipeId,
+                "timestamp" to FieldValue.serverTimestamp()
+            )
+
+            db.collection("calendar")
+                .document(userid)
+                .collection("scheduled")
+                .document(dateKey)
+                .collection("recipes")
+                .document(recipeId)
+                .set(data)
+                .addOnSuccessListener { callback(true) }
+                .addOnFailureListener { callback(false) }
+        }
+
+        fun fetchRecipesScheduledOnDate(
+            userId: String,
+            dateKey: String,
+            callback: (List<RecipeModel>) -> Unit
+        ) {
+            val db = Firebase.firestore
+
+            db.collection("calendar")
+                .document(userId)
+                .collection("scheduled")
+                .document(dateKey)
+                .collection("recipes")
                 .get()
                 .addOnSuccessListener { docs ->
-                    val list = docs.map { it.toObject(RecipeModel::class.java) }
-                    callback(list)
+
+                    val recipeIds = docs.mapNotNull { it.getString("recipeId") }
+
+                    if (recipeIds.isEmpty()) {
+                        callback(emptyList())
+                        return@addOnSuccessListener
+                    }
+
+                    val result = ArrayList<RecipeModel>()
+                    var completed = 0
+
+                    // Fetch every recipe by ID
+                    recipeIds.forEach { id ->
+                        searchRecipeByField("id", id) { recipe ->
+                            recipe?.let { result.add(it) }
+
+                            completed++
+                            if (completed == recipeIds.size) {
+                                callback(result)
+                            }
+                        }
+                    }
                 }
-                .addOnFailureListener { callback(emptyList()) }
+                .addOnFailureListener {
+                    callback(emptyList())
+                }
         }
 
-        fun saveRecipe(id: String, callback: (Boolean) -> Unit) {
-            Firebase.firestore.collection("recipes")
-                .document(id)
-                .update("isSaved", true)
-                .addOnSuccessListener { callback(true) }
-                .addOnFailureListener { callback(false) }
-        }
 
-        fun unsaveRecipe(id: String, callback: (Boolean) -> Unit) {
-            Firebase.firestore.collection("recipes")
-                .document(id)
-                .update("isSaved", false)
-                .addOnSuccessListener { callback(true) }
-                .addOnFailureListener { callback(false) }
-        }
     }
 }

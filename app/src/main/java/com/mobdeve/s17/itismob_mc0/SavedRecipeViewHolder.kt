@@ -1,7 +1,5 @@
 package com.mobdeve.s17.itismob_mc0
 
-import android.content.Intent
-import android.provider.CalendarContract
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
@@ -9,7 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.mobdeve.s17.itismob_mc0.databinding.SavedLayoutBinding
 
-class SavedRecipeViewHolder(private val binding: SavedLayoutBinding)
+class SavedRecipeViewHolder(private val binding: SavedLayoutBinding, private val context: android.content.Context)
     : RecyclerView.ViewHolder(binding.root) {
 
     private val recipeImageIv: ImageView = binding.srDishimageIv
@@ -19,6 +17,9 @@ class SavedRecipeViewHolder(private val binding: SavedLayoutBinding)
     private val authorTv: TextView = binding.srAuthorTv
     private val saveBtnIb: ImageButton = binding.srSaveBtn
     private val calendarBtn: ImageButton = binding.srAddBtn
+
+    // Create local DB helper instance
+    private val localDb = LocalDatabaseHelper(context)
 
     fun bindData(recipe: RecipeModel) {
         recipeNameTv.text = recipe.label
@@ -38,21 +39,34 @@ class SavedRecipeViewHolder(private val binding: SavedLayoutBinding)
         saveBtnIb.setOnClickListener {
             if (saveBtnIb.isSelected) {
                 saveBtnIb.isSelected = false
-                DatabaseHelper.unsaveRecipe(recipe.id) { }
+                localDb.unsaveRecipeLocal(recipe.id)
             } else {
                 saveBtnIb.isSelected = true
-                DatabaseHelper.saveRecipe(recipe.id) { }
+                localDb.saveRecipeLocal(recipe.id) 
             }
             updateSaveButtonVisual()
         }
 
+        // --- Calendar Button ---
         calendarBtn.setOnClickListener {
-            val intent = Intent(Intent.ACTION_INSERT).apply {
-                data = CalendarContract.Events.CONTENT_URI
-                putExtra(CalendarContract.Events.TITLE, recipe.label)
-                putExtra(CalendarContract.Events.DESCRIPTION, "Plan to cook this recipe.")
+            val sp = context.getSharedPreferences("USER_PREFERENCE", android.content.Context.MODE_PRIVATE)
+            val userId = sp.getString("userId", null) ?: return@setOnClickListener
+
+            CalendarPickerDialog.show(context) { year, month, day ->
+                DatabaseHelper.addRecipeToCalendar(
+                    userid = userId,
+                    recipeId = recipe.id,
+                    year = year,
+                    month = month,
+                    day = day
+                ) { success ->
+                    android.widget.Toast.makeText(
+                        context,
+                        if (success) "Added to planner!" else "Failed to add",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
-            itemView.context.startActivity(intent)
         }
     }
 
