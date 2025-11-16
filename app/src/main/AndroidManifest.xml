@@ -70,6 +70,16 @@
             android:windowSoftInputMode="adjustPan|stateHidden"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" />
 
+        <activity
+            android:name="com.mobdeve.s17.itismob_mc0.PublishedRecipeActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ITISMOBMC0" />
+
+        <activity
+            android:name="com.mobdeve.s17.itismob_mc0.SavedRecipeActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ITISMOBMC0" />
+
         <receiver
             android:name=".RecipeNotificationReceiver"
             android:enabled="true"
