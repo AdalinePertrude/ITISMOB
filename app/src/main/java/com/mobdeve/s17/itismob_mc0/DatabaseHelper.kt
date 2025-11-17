@@ -8,6 +8,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
 
 class DatabaseHelper {
@@ -305,6 +306,114 @@ class DatabaseHelper {
                 }
                 .addOnFailureListener { exception ->
                     onComplete(false, "Database error: ${exception.message}")
+                }
+        }
+
+        fun getAddedToCalendarRecipes(selectedDay: String, userid: String, onComplete: (ArrayList<RecipeModel>) -> Unit) {
+            val db = Firebase.firestore
+
+            Log.d("DatabaseHelper", "Searching for recipes for date: '$selectedDay'")
+
+            // Parse the target date from string
+            val dateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault())
+            val targetDate = try {
+                // Extract just the date part (e.g., "November 17, 2025")
+                val datePart = selectedDay.substringBefore(" at ")
+                dateFormat.parse(datePart)
+            } catch (e: Exception) {
+                Log.e("DatabaseHelper", "Error parsing date: $selectedDay", e)
+                onComplete(ArrayList())
+                return
+            }
+
+            if (targetDate == null) {
+                Log.e("DatabaseHelper", "Could not parse date: $selectedDay")
+                onComplete(ArrayList())
+                return
+            }
+
+            // Create start and end of day for query range
+            val calendar = Calendar.getInstance().apply {
+                time = targetDate
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            val startOfDay = calendar.time
+
+            calendar.add(Calendar.DAY_OF_MONTH, 1)
+            val endOfDay = calendar.time
+
+            Log.d("DatabaseHelper", "Querying dates from $startOfDay to $endOfDay")
+
+            db.collection("users")
+                .document(userid)
+                .collection("Added To Calendar Recipes")
+                .whereGreaterThanOrEqualTo("selectedDate", startOfDay)
+                .whereLessThan("selectedDate", endOfDay)
+                .get()
+                .addOnSuccessListener { querySnapshot ->
+                    Log.d("DatabaseHelper", "Found ${querySnapshot.documents.size} calendar entries")
+
+                    val recipeList = ArrayList<RecipeModel>()
+                    val recipeIds = ArrayList<String>()
+
+                    // Collect all recipe IDs
+                    for (document in querySnapshot.documents) {
+                        val recipeId = document.getString("recipeId")
+                        val selectedDate = document.getTimestamp("selectedDate")?.toDate()
+                        Log.d("DatabaseHelper", "Found calendar entry - recipeId: '$recipeId', date: $selectedDate")
+                        recipeId?.let { recipeIds.add(it) }
+                    }
+
+                    if (recipeIds.isEmpty()) {
+                        Log.d("DatabaseHelper", "No recipes found for this date")
+                        onComplete(recipeList)
+                        return@addOnSuccessListener
+                    }
+
+                    Log.d("DatabaseHelper", "Fetching recipes with IDs: $recipeIds")
+
+                    // Fetch recipe details
+                    db.collection("recipes")
+                        .whereIn("id", recipeIds)
+                        .get()
+                        .addOnSuccessListener { recipesSnapshot ->
+                            for (document in recipesSnapshot.documents) {
+                                val recipe = RecipeModel(
+                                    id = document.getString("id") ?: "",
+                                    author = document.getString("author") ?: "",
+                                    calories = document.getLong("calories")?.toInt() ?: 0,
+                                    cautions = document.get("cautions") as? List<String> ?: emptyList(),
+                                    createdAt = document.getTimestamp("createdAt")?.toDate().toString() ?: "",                                    cuisineType = document.get("cuisineType") as? List<String> ?: emptyList(),
+                                    dietLabels = document.get("dietLabels") as? List<String> ?: emptyList(),
+                                    dishType = document.get("dishType") as? List<String> ?: emptyList(),
+                                    healthLabels = document.get("healthLabels") as? List<String> ?: emptyList(),
+                                    imageId = document.getString("image") ?: "", // Note: field name might be "image"
+                                    ingredients = document.get("ingredientLines") as? List<String> ?: emptyList(),
+                                    instructions = document.get("instructions") as? List<String> ?: emptyList(),
+                                    label = document.getString("label") ?: "",
+                                    mealType = document.get("mealType") as? List<String> ?: emptyList(),
+                                    prepTime = document.getLong("preptime")?.toInt() ?: 0,
+                                    rating = document.getDouble("rating") ?: 0.0,
+                                    serving = document.getLong("yield")?.toInt() ?: 0,
+                                    isSaved = document.getBoolean("isSaved") ?: false
+                                )
+                                recipeList.add(recipe)
+                                Log.d("DatabaseHelper", "Added recipe: ${recipe.label}")
+                            }
+                            Log.d("DatabaseHelper", "Successfully fetched ${recipeList.size} recipes")
+                            onComplete(recipeList)
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e("DatabaseHelper", "Error fetching recipes: ${exception.message}")
+                            onComplete(ArrayList())
+                        }
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("DatabaseHelper", "Error fetching calendar entries: ${exception.message}")
+                    onComplete(ArrayList())
                 }
         }
         private fun formatDate(dateString: String): String {
