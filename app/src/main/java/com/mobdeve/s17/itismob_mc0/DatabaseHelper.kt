@@ -531,48 +531,5 @@ class DatabaseHelper {
                 .addOnFailureListener { callback(false) }
         }
 
-        fun fetchRecipesScheduledOnDate(
-            userId: String,
-            dateKey: String,
-            callback: (List<RecipeModel>) -> Unit
-        ) {
-            val db = Firebase.firestore
-
-            db.collection("calendar")
-                .document(userId)
-                .collection("scheduled")
-                .document(dateKey)
-                .collection("recipes")
-                .get()
-                .addOnSuccessListener { docs ->
-
-                    val recipeIds = docs.mapNotNull { it.getString("recipeId") }
-
-                    if (recipeIds.isEmpty()) {
-                        callback(emptyList())
-                        return@addOnSuccessListener
-                    }
-
-                    val result = ArrayList<RecipeModel>()
-                    var completed = 0
-
-                    // Fetch every recipe by ID
-                    recipeIds.forEach { id ->
-                        searchRecipeByField("id", id) { recipe ->
-                            recipe?.let { result.add(it) }
-
-                            completed++
-                            if (completed == recipeIds.size) {
-                                callback(result)
-                            }
-                        }
-                    }
-                }
-                .addOnFailureListener {
-                    callback(emptyList())
-                }
-        }
-
-
     }
 }

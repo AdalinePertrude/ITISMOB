@@ -35,7 +35,7 @@ class SavedRecipeActivity : ComponentActivity() {
 
     private fun setupRecyclerView() {
         savedRecipesRv = binding.linearLayout2.getChildAt(0) as RecyclerView
-        savedAdapter = SavedRecipeAdapter(savedRecipeData)
+        savedAdapter = SavedRecipeAdapter(this, savedRecipeData)
 
         savedRecipesRv.adapter = savedAdapter
         savedRecipesRv.layoutManager =

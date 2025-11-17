@@ -12,7 +12,9 @@
         app:cardBackgroundColor="@android:color/white"
         app:cardCornerRadius="10dp"
         app:cardElevation="4dp"
-        app:cardUseCompatPadding="true">
+        app:cardUseCompatPadding="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/sr_card_cl"
@@ -22,7 +24,6 @@
 
             <ImageView
                 android:id="@+id/sr_dishimage_iv"
-                tools:srcCompat="@drawable/spaghetti"
                 android:layout_width="0dp"
                 android:layout_height="220dp"
                 android:layout_marginBottom="4dp"
@@ -34,7 +35,8 @@
                 app:layout_constraintBottom_toTopOf="@+id/sr_dishname_tv"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                tools:srcCompat="@drawable/spaghetti" />
 
             <TextView
                 android:id="@+id/sr_time_serving_tv"
@@ -47,8 +49,8 @@
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="@+id/sr_dishimage_iv"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
 
             <TextView
                 android:id="@+id/sr_dishname_tv"
@@ -113,8 +115,8 @@
                 android:textColor="@color/text_color_brown"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                app:layout_constraintTop_toBottomOf="@+id/sr_dishimage_iv"
-                app:layout_constraintEnd_toEndOf="parent" />
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/sr_dishimage_iv" />
 
             <ImageButton
                 android:id="@+id/sr_add_btn"
