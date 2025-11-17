@@ -39,15 +39,18 @@ class ProfileActivity : ComponentActivity() {
             startActivity(intent)
         }
 
-        savedRecipes.setOnClickListener {
-            val intent = Intent(this, SavedRecipeActivity::class.java)
-            startActivity(intent)
-        }
 
         publishedRecipes.setOnClickListener {
             val intent = Intent(this, PublishedRecipeActivity::class.java)
             startActivity(intent)
         }
+
+        savedRecipes.setOnClickListener {
+            val intent = Intent(this, SavedRecipeActivity::class.java)
+            startActivity(intent)
+        }
+
+
     }
 
     private fun logoutUser() {

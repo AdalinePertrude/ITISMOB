@@ -13,33 +13,35 @@ import com.mobdeve.s17.itismob_mc0.databinding.SavedPageBinding
 class SavedRecipeActivity : ComponentActivity() {
 
     private lateinit var binding: SavedPageBinding
-    private lateinit var savedRecipesRv: RecyclerView
     private lateinit var savedAdapter: SavedRecipeAdapter
     private val savedRecipeData: ArrayList<RecipeModel> = ArrayList()
 
-    private lateinit var dbHandler: SQLiteDatabaseHandler // local DB instance
+    private lateinit var dbHandler: SQLiteDatabaseHandler
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = SavedPageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        dbHandler = SQLiteDatabaseHandler(this) // initialize local DB
+        dbHandler = SQLiteDatabaseHandler(this)
 
         setupRecyclerView()
         setupBackButton()
         setupSwipeToUnsave()
-
         loadSavedRecipes()
     }
 
     private fun setupRecyclerView() {
-        savedRecipesRv = binding.linearLayout2.getChildAt(0) as RecyclerView
         savedAdapter = SavedRecipeAdapter(this, savedRecipeData)
 
-        savedRecipesRv.adapter = savedAdapter
-        savedRecipesRv.layoutManager =
-            LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        binding.savedRecipesRv.apply {
+            adapter = savedAdapter
+            layoutManager = LinearLayoutManager(
+                this@SavedRecipeActivity,
+                LinearLayoutManager.VERTICAL,
+                false
+            )
+        }
 
         savedAdapter.setOnItemClickListener { recipe ->
             navigateToViewRecipe(recipe.id)
@@ -60,27 +62,23 @@ class SavedRecipeActivity : ComponentActivity() {
                 val pos = vh.adapterPosition
                 val recipe = savedRecipeData[pos]
 
-                // Unsave in local DB
                 dbHandler.unsaveRecipe(recipe.id)
 
-                // Remove from list
                 savedRecipeData.removeAt(pos)
                 savedAdapter.notifyItemRemoved(pos)
 
-                // Handle empty state
                 if (savedRecipeData.isEmpty()) {
                     binding.noSavedText.visibility = View.VISIBLE
-                    savedRecipesRv.visibility = View.GONE
+                    binding.savedRecipesRv.visibility = View.GONE
                 }
             }
         })
 
-        itemTouchHelper.attachToRecyclerView(savedRecipesRv)
+        itemTouchHelper.attachToRecyclerView(binding.savedRecipesRv)
     }
 
     private fun loadSavedRecipes() {
         Thread {
-            // Fetch saved recipes from local DB
             val recipes = dbHandler.getSavedRecipes()
 
             runOnUiThread {
@@ -90,18 +88,17 @@ class SavedRecipeActivity : ComponentActivity() {
 
                 if (savedRecipeData.isEmpty()) {
                     binding.noSavedText.visibility = View.VISIBLE
-                    savedRecipesRv.visibility = View.GONE
+                    binding.savedRecipesRv.visibility = View.GONE
                 } else {
                     binding.noSavedText.visibility = View.GONE
-                    savedRecipesRv.visibility = View.VISIBLE
+                    binding.savedRecipesRv.visibility = View.VISIBLE
                 }
             }
         }.start()
     }
 
     private fun setupBackButton() {
-        val backBtn: ImageButton = binding.returnPageBtn2
-        backBtn.setOnClickListener { finish() }
+        binding.returnPageBtn2.setOnClickListener { finish() }
     }
 
     private fun navigateToViewRecipe(recipeId: String) {
