@@ -11,7 +11,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import com.bumptech.glide.Glide
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Locale
 
 class ViewRecipeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,14 +76,35 @@ class ViewRecipeActivity : ComponentActivity() {
             stepLayout.addView(temp)
             stepNum+= 1
         }
+
+
         calendarAdd.setOnClickListener {
+            val sp = getSharedPreferences("USER_PREFERENCE", android.content.Context.MODE_PRIVATE)
+            val userId = sp.getString("userId", null) ?: return@setOnClickListener
+
             val calendar = Calendar.getInstance()
             val year = calendar.get(Calendar.YEAR)
             val month = calendar.get(Calendar.MONTH)
             val day = calendar.get(Calendar.DAY_OF_MONTH)
+
             val datePickerDialog = DatePickerDialog(
                 this,
                 { _, selectedYear, selectedMonth, selectedDay ->
+                    // Use the function directly with year/month/day
+                    DatabaseHelper.addRecipeToCalendar(
+                        userid = userId,
+                        recipeId = recipeId.toString(),
+                        year = selectedYear,
+                        month = selectedMonth,
+                        day = selectedDay
+                    ) { success ->
+                        Toast.makeText(
+                            this,
+                            if (success) "Added to planner!" else "Failed to add",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
                     val date = "Date Selected: ${selectedDay}/${selectedMonth + 1}/$selectedYear"
                     Toast.makeText(this, date, Toast.LENGTH_SHORT).show()
                 },
@@ -89,6 +112,8 @@ class ViewRecipeActivity : ComponentActivity() {
             )
             datePickerDialog.show()
         }
+
+
         returnPageButton.setOnClickListener {
             finish()
         }

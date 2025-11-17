@@ -229,36 +229,35 @@ class CalendarActivity : ComponentActivity(), OnItemListener {
         val adapter = AddedRecipeAdapter(this.addedRecipeData)
 
         // Set up drag listener for recipes
-        adapter.onDragStarted = { position ->
+        adapter.onDragStarted = { position, view ->
             isDeleteMode = true
             selectedRecipePosition = position
 
             // Show delete area
             viewBinding.deleteArea.visibility = View.VISIBLE
 
-            Toast.makeText(this, "Drag recipe to delete", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Drag recipe to delete area to remove", Toast.LENGTH_SHORT).show()
         }
 
-        // Handle when drag ends (item released)
+        // Handle when drag ends
         adapter.onDragEnded = { position ->
             // If item was dragged but NOT dropped in delete area, stop shaking
             if (isDeleteMode && selectedRecipePosition == position) {
+                // reset if not dropped in delete area
+                resetDeleteMode()
                 Toast.makeText(this, "Release in delete area to remove", Toast.LENGTH_SHORT).show()
             }
         }
 
         // Set up click listeners for recipes
-        adapter.onItemLongClickListener = { position, dish ->
-            // Handle recipe long press (shake and delete)
+        adapter.onItemLongClickListener = { position, dish, view ->
+            // Handle recipe long press shake and delete
             isDeleteMode = true
             selectedRecipePosition = position
 
             // Start shake animation for recipe
-            val holder = addedDishes_rv.findViewHolderForAdapterPosition(position)
-            holder?.itemView?.let { view ->
-                val shakeAnimation = AnimationUtils.loadAnimation(this, R.anim.shake_animation)
-                view.startAnimation(shakeAnimation)
-            }
+            val shakeAnimation = AnimationUtils.loadAnimation(this, R.anim.shake_animation)
+            view.startAnimation(shakeAnimation)
 
             // Show delete area
             viewBinding.deleteArea.visibility = View.VISIBLE
@@ -276,27 +275,71 @@ class CalendarActivity : ComponentActivity(), OnItemListener {
         this.addedDishes_rv.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
     }
 
-    private fun deleteRecipe(position: Int) {
-        try {
-            val recipe = addedRecipeData[position]
 
-            // Cancel the notification if scheduled
-            if (::notificationScheduler.isInitialized) {
-                // You'll need to track which ScheduledRecipe corresponds to which RecipeModel
-                // For now, we'll create a temporary ScheduledRecipe to cancel
-                val tempScheduledRecipe = ScheduledRecipe(
-                    recipe = recipe,
-                    scheduledDateTime = Date() // This would need to be the actual scheduled date
-                )
-                notificationScheduler.cancelRecipeNotification(tempScheduledRecipe)
+    private fun deleteRecipe(position: Int) {
+        val sp: SharedPreferences = getSharedPreferences(USER_PREFERENCE, MODE_PRIVATE)
+        val userid = sp.getString("userId", "") ?: ""
+
+        try {
+            // Check if position is valid
+            if (position < 0 || position >= addedRecipeData.size) {
+                Log.e("CalendarActivity", "Invalid position: $position, data size: ${addedRecipeData.size}")
+                resetDeleteMode()
+                return
             }
 
-            val adapter = addedDishes_rv.adapter as? AddedRecipeAdapter
-            adapter?.removeItem(position)
+            val recipe = addedRecipeData[position]
+            val recipeId = recipe.id
 
-            // Reset delete mode
-            resetDeleteMode()
-            Toast.makeText(this, "Recipe removed", Toast.LENGTH_SHORT).show()
+            Log.d("CalendarActivity", "Deleting recipe: ${recipe.label} with ID: $recipeId")
+
+            // Get the date components from the selected calendar day
+            val dateComponents = getDateComponentsFromSelectedDay()
+
+            if (dateComponents != null) {
+                val (year, month, day) = dateComponents
+
+                Log.d("CalendarActivity", "Date components - Year: $year, Month: $month, Day: $day")
+
+                // Cancel notification if scheduler is initialized
+                if (::notificationScheduler.isInitialized) {
+                    val scheduledRecipe = ScheduledRecipe(
+                        recipe = recipe,
+                        scheduledDateTime = Date()
+                    )
+                    notificationScheduler.cancelRecipeNotification(scheduledRecipe)
+                }
+
+                // Store the recipe for potential recovery
+                val removedRecipe = addedRecipeData[position]
+
+                // Remove from local data and update adapter
+                runOnUiThread {
+                    addedRecipeData.removeAt(position)
+                    val adapter = addedDishes_rv.adapter as? AddedRecipeAdapter
+                    adapter?.notifyItemRemoved(position)
+                    resetDeleteMode()
+                }
+
+                // Delete from Firebase
+                DatabaseHelper.deleteRecipeFromCalendar(userid, recipeId, year, month, day) { success ->
+                    runOnUiThread {
+                        if (success) {
+                            Toast.makeText(this, "Recipe removed", Toast.LENGTH_SHORT).show()
+                        } else {
+                            // If Firebase deletion fails, add the recipe back to local data
+                            Log.e("CalendarActivity", "Firebase deletion failed, restoring recipe")
+                            addedRecipeData.add(position, removedRecipe)
+                            val adapter = addedDishes_rv.adapter as? AddedRecipeAdapter
+                            adapter?.notifyItemInserted(position)
+                            Toast.makeText(this, "Error removing recipe from cloud", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            } else {
+                Log.e("CalendarActivity", "Could not get date components")
+                Toast.makeText(this, "Error: Could not get date information", Toast.LENGTH_SHORT).show()
+            }
 
         } catch (e: Exception) {
             Log.e("CalendarActivity", "Error deleting recipe", e)
@@ -304,24 +347,59 @@ class CalendarActivity : ComponentActivity(), OnItemListener {
         }
     }
 
-    private fun deleteItem(position: Int) {
-        // Reset delete mode
-        resetDeleteMode()
+    // Helper function to get date components safely
+    private fun getDateComponentsFromSelectedDay(): Triple<Int, Int, Int>? {
+        return try {
+            // Get the day from the calendar display
+            val selectedDayText = viewBinding.plannerDateTv.text.toString().trim()
+            Log.d("CalendarActivity", "Planner date text: '$selectedDayText'")
 
-        // Here you would remove the actual calendar data
-        Toast.makeText(this, "Calendar item deleted", Toast.LENGTH_SHORT).show()
+            // Parse the date text - format: "17 November 2025"
+            val dateParts = selectedDayText.split(" ").filter { it.isNotBlank() }
+
+            if (dateParts.size >= 3) {
+                val day = dateParts[0].toIntOrNull()
+                val monthName = dateParts[1]
+                val year = dateParts[2].toIntOrNull()
+
+                if (day != null && year != null) {
+                    val month = convertMonthNameToNumber(monthName)
+                    Triple(year, month, day)
+                } else {
+                    null
+                }
+            } else {
+                // Fallback: use the currently selected calendar date
+                val year = selectedDate.get(Calendar.YEAR)
+                val month = selectedDate.get(Calendar.MONTH)
+                val day = selectedDate.get(Calendar.DAY_OF_MONTH)
+                Triple(year, month, day)
+            }
+        } catch (e: Exception) {
+            Log.e("CalendarActivity", "Error getting date components", e)
+            null
+        }
     }
+
+    // Improved month conversion with better error handling
+    private fun convertMonthNameToNumber(monthName: String): Int {
+        return try {
+            val dateFormat = SimpleDateFormat("MMMM", Locale.getDefault())
+            val date = dateFormat.parse(monthName)
+            val cal = Calendar.getInstance()
+            cal.time = date
+            cal.get(Calendar.MONTH)
+        } catch (e: Exception) {
+            Log.e("CalendarActivity", "Error converting month: $monthName, using current month", e)
+            selectedDate.get(Calendar.MONTH) // Fallback to current month
+        }
+    }
+
 
     private fun resetDeleteMode() {
         isDeleteMode = false
-        selectedItemPosition = -1
         selectedRecipePosition = -1
         viewBinding.deleteArea.visibility = View.GONE
-
-        // Clear animations from all calendar cells
-        for (i in 0 until calendar_rv.childCount) {
-            calendar_rv.getChildAt(i).clearAnimation()
-        }
 
         // Clear animations from all recipe cells
         for (i in 0 until addedDishes_rv.childCount) {
@@ -362,26 +440,33 @@ class CalendarActivity : ComponentActivity(), OnItemListener {
                 }
 
                 android.view.DragEvent.ACTION_DROP -> {
-                    if (selectedItemPosition != -1) {
-                        deleteItem(selectedItemPosition)
-                    } else if (selectedRecipePosition != -1) {
-                        // Use the safe method to delete recipe
-                        deleteRecipe(selectedRecipePosition)
+                    // Get the dragged item data from clip data
+                    val clipData = event.clipData
+                    if (clipData != null) {
+                        val itemData = clipData.getItemAt(0).text.toString()
+
+                        when {
+                            itemData.startsWith("recipe::") -> {
+                                val parts = itemData.split("::")
+                                if (parts.size >= 2) {
+                                    val position = parts[1].toIntOrNull()
+                                    position?.let { deleteRecipe(it) }
+                                }
+                            }
+                        }
                     }
                     return true
                 }
 
                 android.view.DragEvent.ACTION_DRAG_ENDED -> {
                     viewBinding.deleteArea.setBackgroundColor(getColor(android.R.color.holo_red_dark))
-                    if (isDeleteMode) {
-                        resetDeleteMode()
-                    }
                     return true
                 }
             }
             return false
         }
     }
+
     private fun setupNavBar(){
         viewBinding.homeBtnLl.setOnClickListener {
             val intent = Intent(this, HomeActivity::class.java)

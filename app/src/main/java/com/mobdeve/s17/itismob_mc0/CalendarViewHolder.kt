@@ -17,11 +17,11 @@ import androidx.recyclerview.widget.RecyclerView
             }
 
             override fun onClick(v: View?) {
-                    val position = adapterPosition
-                    if (position != RecyclerView.NO_POSITION) {
-                        onItemListener.onItemClick(position, dayOfMonth.text.toString())
-                    }
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onItemListener.onItemClick(position, dayOfMonth.text.toString())
                 }
+            }
 
 
     }
