@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content">
 
     <androidx.cardview.widget.CardView
         android:id="@+id/sr_card_cv"
@@ -12,14 +12,12 @@
         app:cardBackgroundColor="@android:color/white"
         app:cardCornerRadius="10dp"
         app:cardElevation="4dp"
-        app:cardUseCompatPadding="true"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:cardUseCompatPadding="true">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/sr_card_cl"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:paddingBottom="8dp">
 
             <ImageView
@@ -50,6 +48,7 @@
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="@+id/sr_dishimage_iv"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent" />
 
             <TextView
@@ -69,8 +68,8 @@
                 android:id="@+id/sr_by_text_tv"
                 android:layout_width="20dp"
                 android:layout_height="21dp"
-                android:layout_marginStart="100dp"
-                android:layout_marginTop="4dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="36dp"
                 android:text="by"
                 android:textColor="@color/text_color_brown"
                 android:textSize="16sp"
@@ -81,8 +80,8 @@
                 android:id="@+id/sr_author_tv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="125dp"
-                android:layout_marginTop="4dp"
+                android:layout_marginStart="44dp"
+                android:layout_marginTop="36dp"
                 android:text="Author"
                 android:textColor="@color/text_color_brown"
                 android:textSize="16sp"
