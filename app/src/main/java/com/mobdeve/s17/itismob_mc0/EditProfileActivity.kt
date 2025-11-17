@@ -260,6 +260,10 @@ class EditProfileActivity : ComponentActivity() {
             val intent = Intent(this, HomeActivity::class.java)
             startActivity(intent)
         }
+        viewBinding.savedBtnLl.setOnClickListener {
+            val intent = Intent(this, SavedRecipeActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun editLoginState(userName: String? = null, userEmail: String? = null) {

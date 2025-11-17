@@ -393,11 +393,9 @@ class CalendarActivity : ComponentActivity(), OnItemListener {
             startActivity(intent)
         }
 
-        // Remove duplicate home button click listener
         viewBinding.savedBtnLl.setOnClickListener {
-            // Uncomment when you have SavedActivity
-            // val intent = Intent(this, SavedActivity::class.java)
-            // startActivity(intent)
+             val intent = Intent(this, SavedRecipeActivity::class.java)
+             startActivity(intent)
         }
     }
 
