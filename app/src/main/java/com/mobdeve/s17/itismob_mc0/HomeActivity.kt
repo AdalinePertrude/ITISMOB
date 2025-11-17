@@ -23,6 +23,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.mobdeve.s17.itismob_mc0.databinding.HomePageBinding
 import java.util.Locale
 
+
+
 class HomeActivity : ComponentActivity() {
     private lateinit var viewBinding: HomePageBinding
     private lateinit var recipeRv: RecyclerView
@@ -33,8 +35,11 @@ class HomeActivity : ComponentActivity() {
     private lateinit var fabAddRecipe: FloatingActionButton
     private var isAscending = true
 
+    private lateinit var dbHandler: SQLiteDatabaseHandler
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        dbHandler = SQLiteDatabaseHandler(this)
         viewBinding = HomePageBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
@@ -51,30 +56,34 @@ class HomeActivity : ComponentActivity() {
 
     private fun loadDataFromFirebase() {
         DatabaseHelper.fetchRecipeData { dishesList ->
-            runOnUiThread {
-                // runs when Firebase data is loaded
-                recipeData.clear()
-                recipeData.addAll(dishesList)
+            Thread {
+                // Get saved recipes from local DB
+                val savedRecipes = dbHandler.getSavedRecipes()
+                val savedIds = savedRecipes.map { it.id }
 
-                searchList.clear()
-                searchList.addAll(dishesList)
-
-                // Update the adapter with new data
-                (recipeRv.adapter as? HomeAdapter)?.updateData(ArrayList(searchList))
-
-                // Show/hide empty state
-                if (dishesList.isEmpty()) {
-                    viewBinding.noResultsTv.visibility = View.VISIBLE
-                    viewBinding.recipesRv.visibility = View.GONE
-                   // Toast.makeText(this, "No recipes found", Toast.LENGTH_SHORT).show()
-                } else {
-                    viewBinding.noResultsTv.visibility = View.GONE
-                    viewBinding.recipesRv.visibility = View.VISIBLE
-                   // Toast.makeText(this, "Loaded ${dishesList.size} recipes", Toast.LENGTH_SHORT).show()
+                // Mark the recipes that are saved
+                dishesList.forEach { recipe ->
+                    recipe.isSaved = savedIds.contains(recipe.id)
                 }
-            }
+
+                runOnUiThread {
+                    recipeData.clear()
+                    recipeData.addAll(dishesList)
+
+                    searchList.clear()
+                    searchList.addAll(dishesList)
+
+                    (recipeRv.adapter as? HomeAdapter)?.updateData(ArrayList(searchList))
+
+                    viewBinding.noResultsTv.visibility =
+                        if (dishesList.isEmpty()) View.VISIBLE else View.GONE
+                    viewBinding.recipesRv.visibility =
+                        if (dishesList.isEmpty()) View.GONE else View.VISIBLE
+                }
+            }.start()
         }
     }
+
 
     private fun setupNavBar(){
         viewBinding.calendarBtnLl.setOnClickListener {
@@ -94,10 +103,19 @@ class HomeActivity : ComponentActivity() {
     private fun setupFAB() {
         fabAddRecipe = viewBinding.addRecipeFab
         fabAddRecipe.setOnClickListener {
-//            val intent = Intent(this, AddRecipeActivity::class.java)
-//            startActivity(intent)
+            //navigate to AddRecipeActivity
+            //navigateToAddRecipe()
         }
     }
+
+//    private fun navigateToAddRecipe() {
+//        // Replace with your actual AddRecipeActivity
+//        val intent = Intent(this, AddRecipeActivity::class.java)
+//        startActivity(intent)
+//
+//        // Optional: Add animation
+//        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+//    }
 
     private fun setupBackPressedHandler() {
         backPressedCallback = object : OnBackPressedCallback(false) {
@@ -359,4 +377,21 @@ class HomeActivity : ComponentActivity() {
         }
         Log.d("DatabaseDebug", "=== END DATABASE DEBUG ===")
     }
+
+    override fun onResume() {
+        super.onResume()
+
+        // Get saved recipes from local DB
+        val savedRecipes = dbHandler.getSavedRecipes()
+        val savedIds = savedRecipes.map { it.id }
+
+        // Update recipeData to reflect which recipes are saved
+        recipeData.forEach { recipe ->
+            recipe.isSaved = savedIds.contains(recipe.id)
+        }
+
+        // Update RecyclerView with new data
+        (recipeRv.adapter as? HomeAdapter)?.updateData(ArrayList(recipeData))
+    }
+
 }
