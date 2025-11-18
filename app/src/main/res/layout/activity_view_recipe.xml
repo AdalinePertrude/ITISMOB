@@ -4,13 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFF8DC"
+    android:background="#9AF6F5F5"
     tools:context=".ViewRecipeActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/recipeInfoLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:paddingBottom="20dp">
 
         <RelativeLayout
             android:id="@+id/recipeDisplayLayout"
@@ -66,11 +67,11 @@
             android:id="@+id/ratingLayout"
             android:layout_width="91dp"
             android:layout_height="19dp"
-            android:layout_marginStart="100dp"
+            android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:background="#8B4513"
             android:orientation="horizontal"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/recipeNameTv"
             app:layout_constraintTop_toBottomOf="@+id/recipeDisplayLayout">
 
             <TextView
@@ -156,7 +157,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="3dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:text="|"
             app:layout_constraintStart_toEndOf="@+id/cuisineTv"
             app:layout_constraintTop_toBottomOf="@+id/servingTv" />
@@ -277,6 +278,7 @@
             android:orientation="vertical"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView15"></LinearLayout>
+
         <LinearLayout
             android:id="@+id/calendarLayout"
             android:layout_width="wrap_content"

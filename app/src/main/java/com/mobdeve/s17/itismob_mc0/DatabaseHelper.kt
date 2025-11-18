@@ -1,7 +1,5 @@
 package com.mobdeve.s17.itismob_mc0
 
-import android.content.Context
-import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
@@ -317,11 +315,7 @@ class DatabaseHelper {
             }
         }
 
-        fun verifyUserPassword(
-            userid: String,
-            inputPassword: String,
-            onComplete: (Boolean, String?) -> Unit
-        ) {
+        fun verifyUserPassword(userid: String, inputPassword: String, onComplete: (Boolean, String?) -> Unit) {
             val db = Firebase.firestore
 
             db.collection("users")
@@ -443,11 +437,7 @@ class DatabaseHelper {
                 }
         }
 
-        fun getAddedToCalendarRecipes(
-            selectedDay: String,
-            userid: String,
-            onComplete: (ArrayList<RecipeModel>) -> Unit
-        ) {
+        fun getAddedToCalendarRecipes(selectedDay: String, userid: String, onComplete: (ArrayList<RecipeModel>) -> Unit) {
             val db = Firebase.firestore
 
             Log.d("DatabaseHelper", "Searching for recipes for date: '$selectedDay'")
@@ -606,14 +596,7 @@ class DatabaseHelper {
                 }
         }
 
-        fun deleteRecipeFromCalendar(
-            userid: String,
-            recipeId: String,
-            year: Int,
-            month: Int,
-            day: Int,
-            callback: (Boolean) -> Unit
-        ) {
+        fun deleteRecipeFromCalendar(userid: String, recipeId: String, year: Int, month: Int, day: Int, callback: (Boolean) -> Unit) {
             val db = Firebase.firestore
 
             // Create date from parameters - set time to start of day for exact matching

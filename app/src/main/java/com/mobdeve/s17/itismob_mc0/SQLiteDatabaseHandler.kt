@@ -10,9 +10,8 @@ class SQLiteDatabaseHandler(context: Context) : SQLiteOpenHelper(context, DATABA
 
     companion object {
         private const val DATABASE_NAME = "RecipesDatabase"
-        private const val DATABASE_VERSION = 2
+        private const val DATABASE_VERSION = 3
 
-        // Main recipe table
         const val RECIPE_TABLE = "recipes"
         const val RECIPE_ID = "id"
         const val RECIPE_RECIPE_ID = "recipe_id"

@@ -55,7 +55,6 @@ dependencies {
     implementation(libs.androidx.cardview)
     implementation(libs.firebase.firestore)
     implementation("com.google.firebase:firebase-bom:32.2.2")
-    implementation(libs.firebase.auth.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
