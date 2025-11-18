@@ -48,7 +48,8 @@ class DatabaseHelper {
                             prepTime = document.getLong("preptime")?.toInt() ?: 0,
                             rating = 0.0, // Temporary, will be updated
                             serving = document.getLong("yield")?.toInt() ?: 0,
-                            isSaved = document.getBoolean("isSaved") ?: false
+                            isSaved = document.getBoolean("isSaved") ?: false,
+                            description = document.getString("description") ?: ""
                         )
                         recipeList.add(recipe)
                     }
@@ -109,7 +110,8 @@ class DatabaseHelper {
                             prepTime = document.getLong("preptime")?.toInt() ?: 0,
                             rating = document.getDouble("rating") ?: 0.0,
                             serving = document.getLong("yield")?.toInt() ?: 0,
-                            isSaved = document.getBoolean("isSaved") ?: false
+                            isSaved = document.getBoolean("isSaved") ?: false,
+                            description = document.getString("description") ?: ""
                         )
                         onComplete(recipe)
                     } else {
@@ -383,7 +385,7 @@ class DatabaseHelper {
             val recipeData = hashMapOf(
                 "id" to recipe.id,
                 "author" to recipe.author,
-                "authorId" to recipe.author,
+
 
                 "calories" to recipe.calories,
                 "cautions" to recipe.cautions,
@@ -408,7 +410,8 @@ class DatabaseHelper {
                 "yield" to recipe.serving,
 
                 "isPublished" to recipe.isPublished,
-                "isSaved" to recipe.isSaved
+                "isSaved" to recipe.isSaved,
+                "description" to recipe.description
             )
 
             db.collection("recipes")
@@ -550,7 +553,8 @@ class DatabaseHelper {
                                     prepTime = document.getLong("preptime")?.toInt() ?: 0,
                                     rating = document.getDouble("rating") ?: 0.0,
                                     serving = document.getLong("yield")?.toInt() ?: 0,
-                                    isSaved = document.getBoolean("isSaved") ?: false
+                                    isSaved = document.getBoolean("isSaved") ?: false,
+                                    description = document.getString("description") ?: ""
                                 )
                                 recipeList.add(recipe)
                                 Log.d("DatabaseHelper", "Added recipe: ${recipe.label}")
@@ -602,7 +606,14 @@ class DatabaseHelper {
                 }
         }
 
-        fun deleteRecipeFromCalendar(userid: String, recipeId: String, year: Int, month: Int, day: Int, callback: (Boolean) -> Unit) {
+        fun deleteRecipeFromCalendar(
+            userid: String,
+            recipeId: String,
+            year: Int,
+            month: Int,
+            day: Int,
+            callback: (Boolean) -> Unit
+        ) {
             val db = Firebase.firestore
 
             // Create date from parameters - set time to start of day for exact matching

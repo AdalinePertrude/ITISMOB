@@ -27,7 +27,7 @@ class SQLiteRecipeDatabase(context: Context) {
         contentValues.put(SQLiteDatabaseHandler.RECIPE_RATING, recipe.rating)
         contentValues.put(SQLiteDatabaseHandler.RECIPE_SERVING, recipe.serving)
         contentValues.put(SQLiteDatabaseHandler.RECIPE_IS_SAVED, if (recipe.isSaved) 1 else 0) // FIXED: Added isSaved
-
+        contentValues.put(SQLiteDatabaseHandler.RECIPE_DESCRIPTION, recipe.description)
         val _id = db.insert(SQLiteDatabaseHandler.RECIPE_TABLE, null, contentValues)
 
         db.close()
@@ -47,7 +47,8 @@ class SQLiteRecipeDatabase(context: Context) {
             put(SQLiteDatabaseHandler.RECIPE_PREP_TIME, recipe.prepTime)
             put(SQLiteDatabaseHandler.RECIPE_RATING, recipe.rating)
             put(SQLiteDatabaseHandler.RECIPE_SERVING, recipe.serving)
-            put(SQLiteDatabaseHandler.RECIPE_IS_SAVED, if (recipe.isSaved) 1 else 0) // FIXED: Added isSaved
+            put(SQLiteDatabaseHandler.RECIPE_IS_SAVED, if (recipe.isSaved) 1 else 0)
+            put(SQLiteDatabaseHandler.RECIPE_DESCRIPTION, recipe.description)// FIXED: Added isSaved
         }
 
         val result = db.update(SQLiteDatabaseHandler.RECIPE_TABLE, contentValues,
@@ -156,7 +157,8 @@ class SQLiteRecipeDatabase(context: Context) {
             prepTime = cursor.getInt(cursor.getColumnIndexOrThrow(SQLiteDatabaseHandler.RECIPE_PREP_TIME)),
             rating = cursor.getDouble(cursor.getColumnIndexOrThrow(SQLiteDatabaseHandler.RECIPE_RATING)),
             serving = cursor.getInt(cursor.getColumnIndexOrThrow(SQLiteDatabaseHandler.RECIPE_SERVING)),
-            isSaved = cursor.getInt(cursor.getColumnIndexOrThrow(SQLiteDatabaseHandler.RECIPE_IS_SAVED)) == 1 // FIXED: Read from database
+            isSaved = cursor.getInt(cursor.getColumnIndexOrThrow(SQLiteDatabaseHandler.RECIPE_IS_SAVED)) == 1,
+            description = cursor.getString(cursor.getColumnIndexOrThrow(SQLiteDatabaseHandler.RECIPE_DESCRIPTION)) ?: ""
         )
     }
 }

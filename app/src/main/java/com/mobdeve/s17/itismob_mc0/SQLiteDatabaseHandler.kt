@@ -25,6 +25,8 @@ class SQLiteDatabaseHandler(context: Context) : SQLiteOpenHelper(context, DATABA
         const val RECIPE_RATING = "rating"
         const val RECIPE_SERVING = "serving"
         const val RECIPE_IS_SAVED = "is_saved"
+
+        const val RECIPE_DESCRIPTION = "description"
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -40,7 +42,8 @@ class SQLiteDatabaseHandler(context: Context) : SQLiteOpenHelper(context, DATABA
                 $RECIPE_PREP_TIME INTEGER,
                 $RECIPE_RATING REAL,
                 $RECIPE_SERVING INTEGER,
-                $RECIPE_IS_SAVED INTEGER DEFAULT 0
+                $RECIPE_IS_SAVED INTEGER DEFAULT 0,
+                $RECIPE_DESCRIPTION TEXT DEFAULT '' 
             )
         """.trimIndent()
 
@@ -111,7 +114,8 @@ class SQLiteDatabaseHandler(context: Context) : SQLiteOpenHelper(context, DATABA
             ingredients = emptyList(),
             instructions = emptyList(),
             mealType = emptyList(),
-            isPublished = false
+            isPublished = false,
+            description = cursor.getString(cursor.getColumnIndexOrThrow(RECIPE_DESCRIPTION)) ?: ""
         )
     }
 }

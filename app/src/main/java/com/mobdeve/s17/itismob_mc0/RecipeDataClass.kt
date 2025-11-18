@@ -30,5 +30,6 @@ data class Recipe(
     @SerializedName("ingredientLines") val ingredientLines: List<String>,
     @SerializedName("cuisineType") val cuisineType: List<String>,
     @SerializedName("mealType") val mealType: List<String>,
-    @SerializedName("dishType") val dishType: List<String>
+    @SerializedName("dishType") val dishType: List<String>,
+    @SerializedName("description") val description: String
 )

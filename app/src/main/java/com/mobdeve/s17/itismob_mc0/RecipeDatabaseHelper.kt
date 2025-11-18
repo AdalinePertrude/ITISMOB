@@ -39,7 +39,8 @@ class RecipeDatabaseHelper {
                             prepTime = document.getLong("preptime")?.toInt() ?: 0,
                             rating = 0.0, // Temporary, will be updated
                             serving = document.getLong("yield")?.toInt() ?: 0,
-                            isSaved = document.getBoolean("isSaved") ?: false
+                            isSaved = document.getBoolean("isSaved") ?: false,
+                            description = document.getString("description") ?: ""
                         )
                         recipeList.add(recipe)
                     }
@@ -95,7 +96,8 @@ class RecipeDatabaseHelper {
                             prepTime = document.getLong("preptime")?.toInt() ?: 0,
                             rating = document.getDouble("rating") ?: 0.0,
                             serving = document.getLong("yield")?.toInt() ?: 0,
-                            isSaved = document.getBoolean("isSaved") ?: false
+                            isSaved = document.getBoolean("isSaved") ?: false,
+                            description = document.getString("description") ?: ""
                         )
                         onComplete(recipe)
                     } else {

@@ -324,7 +324,8 @@ class AddRecipeActivity : ComponentActivity() {
             prepTime = prepTime,
             rating = 0.0,
             serving = serving,
-            isPublished = true
+            isPublished = true,
+            description = description
         )
 
         DatabaseHelper.addRecipe(recipe) { success ->

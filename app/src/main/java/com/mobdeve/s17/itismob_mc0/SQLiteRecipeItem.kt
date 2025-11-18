@@ -11,7 +11,8 @@ class SQLiteRecipeItem(
     val prepTime: Int = 0,
     val rating: Double = 0.0,
     val serving: Int = 0,
-    var isSaved: Boolean = true
+    var isSaved: Boolean = true,
+    val description: String = ""
 ) {
     companion object {
         private const val DEFAULT_ID = -1
@@ -29,7 +30,8 @@ class SQLiteRecipeItem(
         prepTime = recipe.prepTime,
         rating = recipe.rating,
         serving = recipe.serving,
-        isSaved = recipe.isSaved
+        isSaved = recipe.isSaved,
+        description = recipe.description
     )
 
     // Default constructor
@@ -44,7 +46,8 @@ class SQLiteRecipeItem(
         prepTime = 0,
         rating = 0.0,
         serving = 0,
-        isSaved = true
+        isSaved = true,
+        description = ""
     )
 
     // Convert to RecipeModel (will need to load related data separately)
@@ -76,7 +79,8 @@ class SQLiteRecipeItem(
             prepTime = this.prepTime,
             rating = this.rating,
             serving = this.serving,
-            isSaved = this.isSaved
+            isSaved = this.isSaved,
+            description = this.description
         )
     }
 }
