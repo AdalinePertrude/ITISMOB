@@ -12,9 +12,14 @@ class SavedRecipeAdapter(
 ) : RecyclerView.Adapter<SavedRecipeViewHolder>() {
 
     private var onItemClickListener: ((RecipeModel) -> Unit)? = null
+    private var onRecipeUnsavedListener: ((String) -> Unit)? = null
 
     fun setOnItemClickListener(listener: (RecipeModel) -> Unit) {
         this.onItemClickListener = listener
+    }
+
+    fun setOnRecipeUnsavedListener(listener: (String) -> Unit) {
+        this.onRecipeUnsavedListener = listener
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SavedRecipeViewHolder {
@@ -23,7 +28,10 @@ class SavedRecipeAdapter(
             parent,
             false
         )
-        return SavedRecipeViewHolder(binding, context)
+        return SavedRecipeViewHolder(binding, context){ recipeId ->
+            onRecipeUnsavedListener?.invoke(recipeId)
+        }
+
     }
 
     override fun onBindViewHolder(holder: SavedRecipeViewHolder, position: Int) {
@@ -36,6 +44,14 @@ class SavedRecipeAdapter(
     }
 
     override fun getItemCount(): Int = data.size
+
+    fun removeRecipe(recipeId: String) {
+        val position = data.indexOfFirst { it.id == recipeId }
+        if (position != -1) {
+            data.removeAt(position)
+            notifyItemRemoved(position)
+        }
+    }
 
     fun updateData(newData: ArrayList<RecipeModel>) {
         data.clear()

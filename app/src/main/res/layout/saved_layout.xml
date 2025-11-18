@@ -12,7 +12,9 @@
         app:cardBackgroundColor="@android:color/white"
         app:cardCornerRadius="10dp"
         app:cardElevation="4dp"
-        app:cardUseCompatPadding="true">
+        app:cardUseCompatPadding="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/sr_card_cl"
@@ -98,7 +100,6 @@
                 android:background="@drawable/savedbtn_design"
                 android:contentDescription="Save Button"
                 android:src="@drawable/ic_save"
-                android:tint="#000000"
                 app:layout_constraintBottom_toBottomOf="@+id/sr_dishimage_iv"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"

@@ -8,6 +8,23 @@ import com.mobdeve.s17.itismob_mc0.databinding.HpRecipeCardLayoutBinding
 
 
 class HomeAdapter (private val data : ArrayList<RecipeModel>) : Adapter<HomeViewHolder>() {
+
+    private val savedRecipeListener: (Set<String>) -> Unit = { savedIds ->
+        // Update saved status for visible items
+        data.forEach { recipe ->
+            recipe.isSaved = savedIds.contains(recipe.id)
+        }
+        notifyDataSetChanged()
+    }
+
+    init {
+        SavedRecipeManager.addListener(savedRecipeListener)
+    }
+
+    fun onDestroy() {
+        SavedRecipeManager.removeListener(savedRecipeListener)
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HomeViewHolder {
 
         val RecipesViewBinding: HpRecipeCardLayoutBinding = HpRecipeCardLayoutBinding.inflate(

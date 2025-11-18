@@ -83,6 +83,7 @@ class HomeViewHolder(private var viewBinding: HpRecipeCardLayoutBinding) : Recyc
             if (success) {
                 Log.d("SaveOperation", "Recipe saved offline: ${recipe.label}")
                 Toast.makeText(viewBinding.root.context, "${recipe.label} saved offline", Toast.LENGTH_SHORT).show()
+                SavedRecipeManager.addSavedRecipe(recipe.id)
             } else {
                 Log.e("SaveOperation", "Failed to save recipe: ${recipe.label}")
                 Toast.makeText(viewBinding.root.context, "Failed to save ${recipe.label}", Toast.LENGTH_SHORT).show()
@@ -103,6 +104,7 @@ class HomeViewHolder(private var viewBinding: HpRecipeCardLayoutBinding) : Recyc
             if (success) {
                 Log.d("SaveOperation", "Recipe removed from offline: ${freshRecipe.label}")
                 Toast.makeText(viewBinding.root.context, "${freshRecipe.label} removed from offline", Toast.LENGTH_SHORT).show()
+                SavedRecipeManager.removeSavedRecipe(recipe.id)
             } else {
                 Log.e("SaveOperation", "Failed to remove recipe: ${freshRecipe.label}")
                 Toast.makeText(viewBinding.root.context, "Failed to remove ${freshRecipe.label}", Toast.LENGTH_SHORT).show()

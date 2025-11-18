@@ -26,9 +26,13 @@ import java.util.Locale
 
 
 class HomeActivity : ComponentActivity() {
+    private val savedRecipeListener: (Set<String>) -> Unit = { savedIds ->
+        updateRecipeSavedStatus(savedIds)
+    }
+
     private lateinit var viewBinding: HomePageBinding
     private lateinit var recipeRv: RecyclerView
-    private val recipeData: ArrayList<RecipeModel> = ArrayList() // Initialize as empty
+    private val recipeData: ArrayList<RecipeModel> = ArrayList()
     private lateinit var searchView: SearchView
     private lateinit var searchList: ArrayList<RecipeModel>
     private lateinit var backPressedCallback: OnBackPressedCallback
@@ -52,7 +56,36 @@ class HomeActivity : ComponentActivity() {
         setupNavBar()
         loadDataFromFirebase() // Load data from Firebase after UI setup
         debugDatabaseContent()
+        loadInitialSavedRecipes()
+
+        SavedRecipeManager.addListener(savedRecipeListener)
+
     }
+
+    private fun loadInitialSavedRecipes() {
+        Thread {
+            val savedRecipes = dbHandler.getSavedRecipes()
+            val savedIds = savedRecipes.map { it.id }.toSet()
+            runOnUiThread {
+                SavedRecipeManager.updateSavedRecipes(savedIds)
+            }
+        }.start()
+    }
+
+    private fun updateRecipeSavedStatus(savedIds: Set<String>) {
+        Log.d("SyncDebug", "HomeActivity received update with ${savedIds.size} saved recipes")
+        recipeData.forEach { recipe ->
+            recipe.isSaved = savedIds.contains(recipe.id)
+        }
+        (recipeRv.adapter as? HomeAdapter)?.updateData(ArrayList(recipeData))
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        SavedRecipeManager.removeListener(savedRecipeListener)
+        backPressedCallback.remove()
+    }
+
 
     private fun loadDataFromFirebase() {
         DatabaseHelper.fetchRecipeData { dishesList ->
@@ -356,11 +389,6 @@ class HomeActivity : ComponentActivity() {
         viewBinding.root.requestLayout()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        backPressedCallback.remove()
-    }
-
     private fun debugDatabaseContent() {
         val repository = RecipeRepository(this)
         val allRecipes = repository.getAllRecipes()
@@ -378,20 +406,34 @@ class HomeActivity : ComponentActivity() {
         Log.d("DatabaseDebug", "=== END DATABASE DEBUG ===")
     }
 
+//    override fun onResume() {
+//        super.onResume()
+//
+//        // Get saved recipes from local DB
+//        val savedRecipes = dbHandler.getSavedRecipes()
+//        val savedIds = savedRecipes.map { it.id }
+//
+//        // Update recipeData to reflect which recipes are saved
+//        recipeData.forEach { recipe ->
+//            recipe.isSaved = savedIds.contains(recipe.id)
+//        }
+//
+//        // Update RecyclerView with new data
+//        (recipeRv.adapter as? HomeAdapter)?.updateData(ArrayList(recipeData))
+//    }
     override fun onResume() {
         super.onResume()
+        refreshSavedStatus()
+    }
 
-        // Get saved recipes from local DB
-        val savedRecipes = dbHandler.getSavedRecipes()
-        val savedIds = savedRecipes.map { it.id }
-
-        // Update recipeData to reflect which recipes are saved
-        recipeData.forEach { recipe ->
-            recipe.isSaved = savedIds.contains(recipe.id)
-        }
-
-        // Update RecyclerView with new data
-        (recipeRv.adapter as? HomeAdapter)?.updateData(ArrayList(recipeData))
+    private fun refreshSavedStatus() {
+        Thread {
+            val savedRecipes = dbHandler.getSavedRecipes()
+            val savedIds = savedRecipes.map { it.id }.toSet()
+            runOnUiThread {
+                SavedRecipeManager.updateSavedRecipes(savedIds)
+            }
+        }.start()
     }
 
 }
