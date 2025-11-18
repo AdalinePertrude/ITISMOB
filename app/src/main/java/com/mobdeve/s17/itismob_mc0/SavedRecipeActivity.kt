@@ -107,6 +107,11 @@ class SavedRecipeActivity : ComponentActivity() {
         SavedRecipeManager.removeListener(savedRecipeListener)
     }
 
+    override fun onResume() {
+        super.onResume()
+        loadSavedRecipes()
+    }
+
     private fun setupBackButton() {
         binding.returnPageBtn2.setOnClickListener { finish() }
     }
