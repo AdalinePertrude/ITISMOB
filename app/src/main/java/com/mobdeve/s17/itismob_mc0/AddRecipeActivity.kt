@@ -9,12 +9,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.children
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.util.*
-import com.google.firebase.auth.FirebaseAuth
+
 class AddRecipeActivity : ComponentActivity() {
 
     private lateinit var recipeImageView: ImageView
@@ -32,13 +29,11 @@ class AddRecipeActivity : ComponentActivity() {
     private lateinit var publishBtn: Button
 
     private var imageUri: Uri? = null
-    private var ingredientCount = 1
-    private var stepCount = 1
     private val ingredientRows = mutableListOf<IngredientRow>()
     private val stepRows = mutableListOf<StepRow>()
+
     private val edamamHelper = EdamamNutritionHelper()
     private var totalCalories = 0.0
-
     private val firestore = FirebaseFirestore.getInstance()
 
     private val pickImageLauncher =
@@ -83,7 +78,10 @@ class AddRecipeActivity : ComponentActivity() {
             ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, cuisines)
     }
 
-    /*** INGREDIENTS ***/
+    // ---------------------------------------------------------------------------------------------
+    // INGREDIENTS
+    // ---------------------------------------------------------------------------------------------
+
     private fun setupIngredientButtons() {
         val firstRow = ingredientContainer.findViewById<LinearLayout>(R.id.ingredientRow1)
         val firstAuto = firstRow.findViewById<AutoCompleteTextView>(R.id.ingredientAutoComplete1)
@@ -97,7 +95,10 @@ class AddRecipeActivity : ComponentActivity() {
         setupAutoCompleteDynamic(firstAuto)
 
         firstGrams.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) { calculateCalories(rowObj) }
+            override fun afterTextChanged(s: Editable?) {
+                calculateCalories(rowObj)
+            }
+
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
@@ -112,37 +113,23 @@ class AddRecipeActivity : ComponentActivity() {
     }
 
     private fun addNewIngredientRow() {
-        ingredientCount++
-        val firstRow = ingredientContainer.findViewById<LinearLayout>(R.id.ingredientRow1)
         val newRow = LinearLayout(this)
         newRow.orientation = LinearLayout.HORIZONTAL
-        newRow.gravity = firstRow.gravity
-        newRow.layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
 
         val auto = AutoCompleteTextView(this)
         auto.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         auto.hint = "Ingredient"
-        auto.setPadding(8, 8, 8, 8)
 
         val grams = EditText(this)
         grams.layoutParams = LinearLayout.LayoutParams(150, LinearLayout.LayoutParams.WRAP_CONTENT)
         grams.hint = "g"
-        grams.inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
-        grams.gravity = android.view.Gravity.CENTER
+        grams.inputType = android.text.InputType.TYPE_CLASS_NUMBER or
+                android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
 
         val cals = TextView(this)
-        cals.layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
         cals.text = "0 kcal"
-        cals.setPadding(8, 0, 8, 0)
 
         val remove = ImageButton(this)
-        remove.layoutParams = LinearLayout.LayoutParams(80, 80)
         remove.setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
         remove.setBackgroundColor(android.graphics.Color.TRANSPARENT)
 
@@ -158,7 +145,10 @@ class AddRecipeActivity : ComponentActivity() {
         setupAutoCompleteDynamic(auto)
 
         grams.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) { calculateCalories(rowObj) }
+            override fun afterTextChanged(s: Editable?) {
+                calculateCalories(rowObj)
+            }
+
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
@@ -170,22 +160,24 @@ class AddRecipeActivity : ComponentActivity() {
         }
     }
 
-    private fun setupAutoCompleteDynamic(autoCompleteTextView: AutoCompleteTextView) {
-        autoCompleteTextView.addTextChangedListener(object : TextWatcher {
+    private fun setupAutoCompleteDynamic(auto: AutoCompleteTextView) {
+        auto.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
-                val query = s.toString().trim()
-                if (query.isNotEmpty()) {
-                    fetchIngredientSuggestions(query) { suggestions ->
-                        val adapter = ArrayAdapter(
-                            this@AddRecipeActivity,
-                            android.R.layout.simple_dropdown_item_1line,
-                            suggestions
+                val q = s.toString().trim()
+                if (q.isNotEmpty()) {
+                    fetchIngredientSuggestions(q) { list ->
+                        auto.setAdapter(
+                            ArrayAdapter(
+                                this@AddRecipeActivity,
+                                android.R.layout.simple_dropdown_item_1line,
+                                list
+                            )
                         )
-                        autoCompleteTextView.setAdapter(adapter)
-                        autoCompleteTextView.showDropDown()
+                        auto.showDropDown()
                     }
                 }
             }
+
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
@@ -198,17 +190,18 @@ class AddRecipeActivity : ComponentActivity() {
             .endAt(query + "\uf8ff")
             .limit(10)
             .get()
-            .addOnSuccessListener { snapshot ->
-                val list = snapshot.documents.mapNotNull { it.getString("name") }
-                onComplete(list)
+            .addOnSuccessListener { snap ->
+                val names = snap.documents.mapNotNull { it.getString("name") }
+                onComplete(names)
+            }.addOnFailureListener {
+                onComplete(emptyList())
             }
-            .addOnFailureListener { onComplete(emptyList()) }
     }
 
     private fun calculateCalories(row: IngredientRow) {
         val name = row.name.text.toString()
-        val gramsStr = row.grams.text.toString()
-        val grams = gramsStr.toDoubleOrNull() ?: 0.0
+        val grams = row.grams.text.toString().toDoubleOrNull() ?: 0.0
+
         if (name.isEmpty() || grams <= 0) {
             row.calories.text = "0 kcal"
             updateTotalCalories()
@@ -227,54 +220,82 @@ class AddRecipeActivity : ComponentActivity() {
     }
 
     private fun updateTotalCalories() {
-        totalCalories = ingredientRows.sumOf { it.calories.text.toString().replace(" kcal", "").toDoubleOrNull() ?: 0.0 }
+        totalCalories = ingredientRows.sumOf {
+            it.calories.text.toString().replace(" kcal", "").toDoubleOrNull() ?: 0.0
+        }
         totalCalsValue.text = "${totalCalories.toInt()} kcal"
     }
 
-    /*** STEPS ***/
+    // ---------------------------------------------------------------------------------------------
+    // STEPS — WITH AUTO NUMBERING + VALIDATION
+    // ---------------------------------------------------------------------------------------------
+
     private fun setupStepButtons() {
-        val firstStepRow = stepContainer.getChildAt(0) as LinearLayout
-        val firstStepEt = firstStepRow.findViewById<EditText>(R.id.stepEt1)
-        val firstStepObj = StepRow(firstStepEt)
-        stepRows.add(firstStepObj)
+        val firstRow = stepContainer.getChildAt(0) as LinearLayout
+        val numberView = firstRow.getChildAt(0) as TextView // "Step 1"
+        val stepEt = firstRow.findViewById<EditText>(R.id.stepEt1)
+
+        stepRows.add(StepRow(stepEt, numberView))
+        updateStepNumbers()
 
         addStepBtn.setOnClickListener { addNewStepRow() }
     }
 
     private fun addNewStepRow() {
-        stepCount++
-        val firstStepRow = stepContainer.getChildAt(0) as LinearLayout
-
         val newRow = LinearLayout(this)
         newRow.orientation = LinearLayout.HORIZONTAL
-        newRow.gravity = firstStepRow.gravity
-        newRow.layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
+        newRow.setPadding(0, 10, 0, 10)
+
+        val numberView = TextView(this)
+        numberView.textSize = 15f
+        numberView.setPadding(0, 0, 16, 0)
 
         val stepEt = EditText(this)
         stepEt.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         stepEt.hint = "Describe step"
-        stepEt.setPadding(8, 8, 8, 8)
 
         val removeBtn = ImageButton(this)
-        removeBtn.layoutParams = LinearLayout.LayoutParams(80, 80)
         removeBtn.setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
         removeBtn.setBackgroundColor(android.graphics.Color.TRANSPARENT)
 
+        newRow.addView(numberView)
         newRow.addView(stepEt)
         newRow.addView(removeBtn)
         stepContainer.addView(newRow)
 
-        val stepObj = StepRow(stepEt)
+        val stepObj = StepRow(stepEt, numberView)
         stepRows.add(stepObj)
+
+        updateStepNumbers()
 
         removeBtn.setOnClickListener {
             stepContainer.removeView(newRow)
             stepRows.remove(stepObj)
+            updateStepNumbers()
         }
     }
+
+    private fun updateStepNumbers() {
+        stepRows.forEachIndexed { index, row ->
+            row.numberView.text = "Step ${index + 1}"
+        }
+    }
+
+    private fun validateSteps(): Boolean {
+        for (i in stepRows.indices) {
+            val stepText = stepRows[i].step.text.toString().trim()
+            if (stepText.isEmpty()) {
+                Toast.makeText(this, "Please complete Step ${i + 1}", Toast.LENGTH_SHORT).show()
+                stepRows[i].step.requestFocus()
+                return false
+            }
+        }
+        return true
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // IMAGE + PUBLISH
+    // ---------------------------------------------------------------------------------------------
 
     private fun setupImageButton() {
         selectImageBtn.setOnClickListener { pickImageLauncher.launch("image/*") }
@@ -285,24 +306,26 @@ class AddRecipeActivity : ComponentActivity() {
     }
 
     private fun publishRecipe() {
+
+        if (!validateSteps()) return
+
         val id = UUID.randomUUID().toString()
         val name = recipeNameEt.text.toString()
-        val cuisine = listOf(cuisineSpinner.selectedItem.toString())
-        val prepTime = prepTimeEt.text.toString().toIntOrNull() ?: 0
-        val serving = servingEt.text.toString().toIntOrNull() ?: 1
-        val description = descriptionEt.text.toString()
-        val ingredients = ingredientRows.map { "${it.name.text} - ${it.grams.text}g" }
-        val steps = stepRows.map { it.step.text.toString() }
-
         if (name.isBlank()) {
             Toast.makeText(this, "Recipe name is required", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Just store a placeholder string for image
+        val cuisine = listOf(cuisineSpinner.selectedItem.toString())
+        val prepTime = prepTimeEt.text.toString().toIntOrNull() ?: 0
+        val serving = servingEt.text.toString().toIntOrNull() ?: 1
+        val description = descriptionEt.text.toString()
+
+        val ingredients = ingredientRows.map { "${it.name.text} - ${it.grams.text}g" }
+        val steps = stepRows.map { it.step.text.toString() }
+
         val imageUrl = imageUri?.toString() ?: ""
 
-        // Get the current user
         val firebaseUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
         val authorName = firebaseUser?.displayName ?: firebaseUser?.email ?: "Unknown"
 
@@ -339,5 +362,6 @@ class AddRecipeActivity : ComponentActivity() {
     }
 }
 
+// DATA STRUCTS
 data class IngredientRow(val name: AutoCompleteTextView, val grams: EditText, val calories: TextView)
-data class StepRow(val step: EditText)
+data class StepRow(val step: EditText, val numberView: TextView)
