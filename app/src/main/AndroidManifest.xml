@@ -80,6 +80,11 @@
             android:exported="false"
             android:theme="@style/Theme.ITISMOBMC0" />
 
+        <activity
+            android:name="com.mobdeve.s17.itismob_mc0.AddRecipeActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ITISMOBMC0" />
+
         <receiver
             android:name=".RecipeNotificationReceiver"
             android:enabled="true"
