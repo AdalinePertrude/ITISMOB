@@ -14,7 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
-
+import com.google.firebase.auth.FirebaseAuth
 class AddRecipeActivity : ComponentActivity() {
 
     private lateinit var recipeImageView: ImageView
@@ -302,9 +302,13 @@ class AddRecipeActivity : ComponentActivity() {
         // Just store a placeholder string for image
         val imageUrl = imageUri?.toString() ?: ""
 
+        // Get the current user
+        val firebaseUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+        val authorName = firebaseUser?.displayName ?: firebaseUser?.email ?: "Unknown"
+
         val recipe = RecipeModel(
             id = id,
-            author = "Author",
+            author = authorName,
             calories = totalCalories.toInt(),
             cautions = emptyList(),
             createdAt = Date().toString(),
