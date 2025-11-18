@@ -136,19 +136,19 @@ class HomeActivity : ComponentActivity() {
     private fun setupFAB() {
         fabAddRecipe = viewBinding.addRecipeFab
         fabAddRecipe.setOnClickListener {
-            //navigate to AddRecipeActivity
-            //navigateToAddRecipe()
+
+            navigateToAddRecipe()
         }
     }
 
-//    private fun navigateToAddRecipe() {
-//        // Replace with your actual AddRecipeActivity
-//        val intent = Intent(this, AddRecipeActivity::class.java)
-//        startActivity(intent)
-//
-//        // Optional: Add animation
-//        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-//    }
+    private fun navigateToAddRecipe() {
+        // Replace with your actual AddRecipeActivity
+        val intent = Intent(this, AddRecipeActivity::class.java)
+        startActivity(intent)
+
+        // Optional: Add animation
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+    }
 
     private fun setupBackPressedHandler() {
         backPressedCallback = object : OnBackPressedCallback(false) {
