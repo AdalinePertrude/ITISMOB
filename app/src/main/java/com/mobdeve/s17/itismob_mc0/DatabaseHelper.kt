@@ -602,14 +602,7 @@ class DatabaseHelper {
                 }
         }
 
-        fun deleteRecipeFromCalendar(
-            userid: String,
-            recipeId: String,
-            year: Int,
-            month: Int,
-            day: Int,
-            callback: (Boolean) -> Unit
-        ) {
+        fun deleteRecipeFromCalendar(userid: String, recipeId: String, year: Int, month: Int, day: Int, callback: (Boolean) -> Unit) {
             val db = Firebase.firestore
 
             // Create date from parameters - set time to start of day for exact matching
