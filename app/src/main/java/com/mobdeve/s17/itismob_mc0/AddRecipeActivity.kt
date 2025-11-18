@@ -1,5 +1,6 @@
 package com.mobdeve.s17.itismob_mc0
 
+import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
@@ -7,7 +8,6 @@ import android.text.TextWatcher
 import android.widget.*
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.view.children
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.*
 import java.util.*
@@ -36,6 +36,9 @@ class AddRecipeActivity : ComponentActivity() {
     private var totalCalories = 0.0
     private val firestore = FirebaseFirestore.getInstance()
 
+    private val USER_PREFERENCE = "USER_PREFERENCE"
+    private lateinit var sharedPreferences: android.content.SharedPreferences
+
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
@@ -47,6 +50,8 @@ class AddRecipeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.publish_recipe)
+
+        sharedPreferences = getSharedPreferences(USER_PREFERENCE, Context.MODE_PRIVATE)
 
         bindViews()
         setupCuisineSpinner()
@@ -227,12 +232,12 @@ class AddRecipeActivity : ComponentActivity() {
     }
 
     // ---------------------------------------------------------------------------------------------
-    // STEPS — WITH AUTO NUMBERING + VALIDATION
+    // STEPS
     // ---------------------------------------------------------------------------------------------
 
     private fun setupStepButtons() {
         val firstRow = stepContainer.getChildAt(0) as LinearLayout
-        val numberView = firstRow.getChildAt(0) as TextView // "Step 1"
+        val numberView = firstRow.getChildAt(0) as TextView
         val stepEt = firstRow.findViewById<EditText>(R.id.stepEt1)
 
         stepRows.add(StepRow(stepEt, numberView))
@@ -326,12 +331,13 @@ class AddRecipeActivity : ComponentActivity() {
 
         val imageUrl = imageUri?.toString() ?: ""
 
-        val firebaseUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
-        val authorName = firebaseUser?.displayName ?: firebaseUser?.email ?: "Unknown"
+        // Get user info from SharedPreferences
+        val userId = sharedPreferences.getString("userId", "Unknown") ?: "Unknown"
+        val userName = sharedPreferences.getString("userName", "Unknown") ?: "Unknown"
 
         val recipe = RecipeModel(
             id = id,
-            author = authorName,
+            author = userName,
             calories = totalCalories.toInt(),
             cautions = emptyList(),
             createdAt = Date().toString(),
@@ -365,3 +371,4 @@ class AddRecipeActivity : ComponentActivity() {
 // DATA STRUCTS
 data class IngredientRow(val name: AutoCompleteTextView, val grams: EditText, val calories: TextView)
 data class StepRow(val step: EditText, val numberView: TextView)
+

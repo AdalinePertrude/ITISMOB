@@ -385,7 +385,7 @@ class DatabaseHelper {
             val recipeData = hashMapOf(
                 "id" to recipe.id,
                 "author" to recipe.author,
-
+                "authorid" to recipe.author,
 
                 "calories" to recipe.calories,
                 "cautions" to recipe.cautions,
