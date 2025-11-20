@@ -25,6 +25,10 @@ class ProfileActivity : ComponentActivity() {
         val publishedRecipes: Button = findViewById(R.id.publishedRecsBtn)
         val backHome: Button = findViewById(R.id.backHomeBtn)
         val logout: Button = findViewById(R.id.logoutBtn)
+        val sp: SharedPreferences = getSharedPreferences(USER_PREFERENCE, MODE_PRIVATE)
+
+        fullName.text = sp.getString("userName", "")
+        email.text = sp.getString("userEmail", "")
 
         logout.setOnClickListener {
             logoutUser()

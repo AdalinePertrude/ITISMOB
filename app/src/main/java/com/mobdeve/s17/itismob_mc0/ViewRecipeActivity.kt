@@ -1,7 +1,6 @@
 package com.mobdeve.s17.itismob_mc0
 
 import android.app.DatePickerDialog
-import android.app.Notification
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -13,33 +12,19 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import com.bumptech.glide.Glide
-import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Locale
 
 class ViewRecipeActivity : ComponentActivity() {
-    private lateinit var notificationScheduler: NotificationScheduler
-    private lateinit var currentRecipe: RecipeModel
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_view_recipe)
-        var ingNum = 1
-        var stepNum = 1
-        val ingredientsArray = ArrayList<String>()
-        ingredientsArray.add("Sugar")
-        ingredientsArray.add("Salt")
-        ingredientsArray.add("Milk")
-        ingredientsArray.add("Eggs")
-        val stepsArray = ArrayList<String>()
-        stepsArray.add("Step 1")
-        stepsArray.add("Step 2")
         val calendarAdd: Button = findViewById(R.id.addToCalendarBtn)
         val savedBtn: ImageButton = findViewById(R.id.savedRecBtn)
         val returnPageButton: ImageButton = findViewById(R.id.returnPageBtn)
         val viewCommentsButton: Button = findViewById(R.id.viewCommsBtn)
         var ifClicked= false
-        val recipeId = intent.getStringExtra("RECIPE_ID")
+        val userId = getSharedPreferences("USER_PREFERENCE", android.content.Context.MODE_PRIVATE).getString("userId", "")!!
+        val recipeId = intent.getStringExtra("RECIPE_ID") ?: return
         // Log.d("DEBUG", "id: $recipeId")
         if (recipeId != null) {
             loadRecipeData(recipeId)
@@ -48,7 +33,6 @@ class ViewRecipeActivity : ComponentActivity() {
             finish()
         }
 
-        setupNotificationScheduling()
 
         savedBtn.setOnClickListener {
             if(ifClicked) {
@@ -62,26 +46,25 @@ class ViewRecipeActivity : ComponentActivity() {
             ifClicked = !ifClicked
         }
         val starRating: RatingBar = findViewById(R.id.starsRb)
+
+       DatabaseHelper.loadUserRating(recipeId, userId, starRating)
+
         starRating.setOnRatingBarChangeListener {starRating, rating, fromUser ->
-            if (fromUser) {
-                Toast.makeText(this, "You rated $rating stars!", Toast.LENGTH_SHORT).show()
+            if (!fromUser) return@setOnRatingBarChangeListener
+
+            val ratingtemp = RatingModel(
+                rater = userId,
+                rating = rating.toDouble(),
+            )
+
+            DatabaseHelper.addOrUpdateRecipeRating(recipeId, ratingtemp) { success ->
+                if (success) {
+                    Log.d("RATING", "Rating saved")
+                    Toast.makeText(this, "You rated $rating stars!", Toast.LENGTH_SHORT).show()
+                }
+                else Log.e("RATING", "Failed to save rating")
             }
         }
-        val ingredientLayout: LinearLayout = findViewById(R.id.ingredientsLayout)
-        for(i in ingredientsArray){
-            val temp = TextView(this)
-            temp.text = ingNum.toString() + ". " + i
-            ingredientLayout.addView(temp)
-        }
-        val stepLayout: LinearLayout = findViewById(R.id.stepsLayout)
-        for(i in stepsArray){
-            val temp = TextView(this)
-            temp.text = stepNum.toString() + ". " + i
-            stepLayout.addView(temp)
-            stepNum+= 1
-        }
-
-
         calendarAdd.setOnClickListener {
             val sp = getSharedPreferences("USER_PREFERENCE", android.content.Context.MODE_PRIVATE)
             val userId = sp.getString("userId", null) ?: return@setOnClickListener
@@ -102,18 +85,11 @@ class ViewRecipeActivity : ComponentActivity() {
                         month = selectedMonth,
                         day = selectedDay
                     ) { success ->
-                        runOnUiThread {
-                            if (success) {
-                                Toast.makeText(this, "Added to planner!", Toast.LENGTH_SHORT).show()
-
-                                // Schedule notification if we have the recipe data
-                                if (::currentRecipe.isInitialized) {
-                                    scheduleNotificationForRecipe(currentRecipe, selectedYear, selectedMonth, selectedDay)
-                                }
-                            } else {
-                                Toast.makeText(this, "Failed to add to planner", Toast.LENGTH_SHORT).show()
-                            }
-                        }
+                        Toast.makeText(
+                            this,
+                            if (success) "Added to planner!" else "Failed to add",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
                     }
 
                     val date = "Date Selected: ${selectedDay}/${selectedMonth + 1}/$selectedYear"
@@ -122,7 +98,6 @@ class ViewRecipeActivity : ComponentActivity() {
                 year, month, day
             )
             datePickerDialog.show()
-            NotificationScheduler.testNotification(this)
         }
 
 
@@ -141,10 +116,10 @@ class ViewRecipeActivity : ComponentActivity() {
         DatabaseHelper.searchRecipeByField("id", recipeId) { recipe ->
             runOnUiThread {
                 if (recipe != null) {
-                    currentRecipe = recipe
+                    // Update UI with recipe data
                     updateUI(recipe)
                 } else {
-                    Toast.makeText(this, "Recipe not found", Toast.LENGTH_SHORT).show()
+
                 }
 
             }
@@ -159,38 +134,25 @@ class ViewRecipeActivity : ComponentActivity() {
         Glide.with(this)
             .load(recipe.imageId)
             .into(findViewById(R.id.imageView2))
-    }
-
-    private fun scheduleNotificationForRecipe(recipe: RecipeModel, year: Int, month: Int, day: Int) {
-        try {
-            // Create calendar instance for the scheduled date at 9:00 AM
-            val scheduledCalendar = Calendar.getInstance().apply {
-                set(year, month, day, 9, 0, 0) // Set to 9:00 AM on selected date
-                set(Calendar.MILLISECOND, 0)
-            }
-
-            // Create scheduled recipe
-            val scheduledRecipe = ScheduledRecipe(
-                recipe = recipe,
-                scheduledDateTime = scheduledCalendar.time
-            )
-
-            // Schedule the notification
-            notificationScheduler.scheduleRecipeNotification(scheduledRecipe)
-
-            // Log success
-            val dateFormat = SimpleDateFormat("MMM dd, yyyy 'at' hh:mm a", Locale.getDefault())
-            Log.d("ViewRecipeActivity", "✅ Notification scheduled for: ${dateFormat.format(scheduledCalendar.time)}")
-
-        } catch (e: Exception) {
-            Log.e("ViewRecipeActivity", "❌ Error scheduling notification", e)
-            Toast.makeText(this, "Error scheduling reminder", Toast.LENGTH_SHORT).show()
+        var ingredientsArray = ArrayList<String>()
+        var stepsArray = ArrayList<String>()
+        ingredientsArray = recipe.ingredients as ArrayList<String>
+        stepsArray = recipe.instructions as ArrayList<String>
+        val ingNum = 1
+        var stepNum = 1
+        val ingredientLayout: LinearLayout = findViewById(R.id.ingredientsLayout)
+        val stepLayout: LinearLayout = findViewById(R.id.stepsLayout)
+        for(i in ingredientsArray){
+            val temp = TextView(this)
+            temp.text = i
+            ingredientLayout.addView(temp)
         }
-    }
-
-    private fun setupNotificationScheduling() {
-        Toast.makeText(this, "✅ Recipe reminders enabled!", Toast.LENGTH_SHORT).show()
-        notificationScheduler = NotificationScheduler(this)
+        for(i in stepsArray){
+            val temp = TextView(this)
+            temp.text = stepNum.toString() + ". " + i
+            stepLayout.addView(temp)
+            stepNum+= 1
+        }
     }
 
 
