@@ -11,11 +11,15 @@ data class ScheduledRecipe(
     fun getNotificationTime(): Long {
         val calendar = Calendar.getInstance().apply {
             time = scheduledDateTime
+            add(Calendar.DAY_OF_MONTH, -1)
+            set(Calendar.HOUR_OF_DAY, 9) // 9:00 AM
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
         }
-        // Calculate exactly 1 day before the scheduled time
-        calendar.add(Calendar.DAY_OF_MONTH, -1)
         return calendar.timeInMillis
     }
+
 
     fun isNotificationScheduled(): Boolean {
         return scheduledDateTime.time > System.currentTimeMillis()

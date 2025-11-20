@@ -62,12 +62,14 @@ class AddedRecipeAdapter(private val data: ArrayList<RecipeModel>) : RecyclerVie
                 android.view.DragEvent.ACTION_DRAG_ENDED -> {
                     // Stop shaking when drag ends
                     stopShakeAnimation(v)
+                    // Notify that drag ended
                     onDragEnded?.invoke(position)
                     true
                 }
                 else -> false
             }
         }
+
     }
 
     private fun startDragForRecipe(view: View, position: Int) {

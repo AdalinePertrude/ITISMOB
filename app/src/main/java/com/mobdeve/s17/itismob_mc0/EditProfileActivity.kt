@@ -119,24 +119,61 @@ class EditProfileActivity : ComponentActivity() {
             return
         }
 
+        val oldUsername = userName // Store the old username before updating
+
         DatabaseHelper.updateUserInfo(userid!!, name, email) { success, errorMessage ->
             runOnUiThread {
                 if (success) {
-                    editLoginState(name, email)
-                    Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show()
-                    checkIfChangesMade()
+                    // Check if username actually changed
+                    if (oldUsername != name) {
+                        Log.d("EditProfile", "Username changed from '$oldUsername' to '$name', updating across all data...")
+                        updateUsernameAcrossAllData(oldUsername!!, name) { updateSuccess, updateError ->
+                            runOnUiThread {
+                                if (updateSuccess) {
+                                    editLoginState(name, email)
+                                    Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show()
+                                    Log.d("EditProfile", "Username updated across all data successfully")
+                                } else {
+                                    // Still update local state but show warning
+                                    editLoginState(name, email)
+                                    Toast.makeText(this,
+                                        "Profile updated but some comments/ratings may show old username",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                    Log.w("EditProfile", "Username update partially failed: $updateError")
+                                }
+                                checkIfChangesMade()
+                            }
+                        }
+                    } else {
+                        // Only email changed, no need to update comments/ratings
+                        editLoginState(name, email)
+                        Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show()
+                        checkIfChangesMade()
+                        Log.d("EditProfile", "Only email updated, username unchanged")
+                    }
                 } else {
                     Toast.makeText(this, errorMessage ?: "Failed to update profile", Toast.LENGTH_SHORT).show()
+                    Log.e("EditProfile", "Failed to update user info: $errorMessage")
                 }
             }
         }
     }
 
+    private fun updateUsernameAcrossAllData(oldUsername: String, newUsername: String, onComplete: (Boolean, String?) -> Unit) {
+        DatabaseHelper.updateUsernameAcrossAllData(oldUsername, newUsername) { success, errorMessage ->
+            runOnUiThread {
+                onComplete(success, errorMessage)
+            }
+        }
+    }
     private fun updateProfileAndPassword(name: String, email: String, oldPass: String, newPass: String) {
         if (userid.isNullOrEmpty()) {
             Toast.makeText(this, "User ID not found", Toast.LENGTH_SHORT).show()
             return
         }
+
+        val oldUsername = userName // Store the old username before updating
 
         DatabaseHelper.updateUserPassword(userid!!, oldPass, newPass) { success, errorMessage ->
             runOnUiThread {
@@ -144,12 +181,39 @@ class EditProfileActivity : ComponentActivity() {
                     DatabaseHelper.updateUserInfo(userid!!, name, email) { profileSuccess, profileError ->
                         runOnUiThread {
                             if (profileSuccess) {
-                                editLoginState(name, email)
-                                Toast.makeText(this, "Profile and password updated successfully", Toast.LENGTH_SHORT).show()
-                                clearPasswordFields()
-                                checkIfChangesMade()
+                                // Check if username changed
+                                if (oldUsername != name) {
+                                    Log.d("EditProfile", "Username changed, updating across all data...")
+                                    updateUsernameAcrossAllData(oldUsername!!, name) { updateSuccess, updateError ->
+                                        runOnUiThread {
+                                            if (updateSuccess) {
+                                                editLoginState(name, email)
+                                                Toast.makeText(this, "Profile and password updated successfully", Toast.LENGTH_SHORT).show()
+                                                Log.d("EditProfile", "Complete update successful")
+                                            } else {
+                                                // Still update local state but show warning
+                                                editLoginState(name, email)
+                                                Toast.makeText(this,
+                                                    "Profile and password updated but some comments/ratings may show old username",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+                                                Log.w("EditProfile", "Username update partially failed: $updateError")
+                                            }
+                                            clearPasswordFields()
+                                            checkIfChangesMade()
+                                        }
+                                    }
+                                } else {
+                                    // Only email changed, no need to update comments/ratings
+                                    editLoginState(name, email)
+                                    Toast.makeText(this, "Profile and password updated successfully", Toast.LENGTH_SHORT).show()
+                                    clearPasswordFields()
+                                    checkIfChangesMade()
+                                    Log.d("EditProfile", "Password and email updated, username unchanged")
+                                }
                             } else {
                                 Toast.makeText(this, "Password updated but profile update failed: ${profileError ?: "Unknown error"}", Toast.LENGTH_SHORT).show()
+                                Log.e("EditProfile", "Profile update failed after password change: $profileError")
                             }
                         }
                     }
@@ -167,10 +231,13 @@ class EditProfileActivity : ComponentActivity() {
                             Toast.makeText(this, "Failed to update password. Please try again.", Toast.LENGTH_SHORT).show()
                         }
                     }
+                    Log.e("EditProfile", "Password update failed: $errorMessage")
                 }
             }
         }
     }
+
+
     private fun setupEditTextListeners() {
         val textWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}

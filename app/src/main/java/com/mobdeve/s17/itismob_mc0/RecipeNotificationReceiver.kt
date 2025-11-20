@@ -17,27 +17,31 @@ class RecipeNotificationReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(TAG, "Recipe notification triggered")
+        try {
+            Log.d(TAG, "Recipe notification triggered")
 
-        val recipeId = intent.getStringExtra("recipe_id")
-        val recipeLabel = intent.getStringExtra("recipe_label") ?: "Unknown Recipe"
-        val recipeImageId = intent.getStringExtra("recipe_image_id")
-        val notificationId = intent.getIntExtra("notification_id", 0)
-        val scheduledTime = intent.getLongExtra("scheduled_time", 0)
-        val prepTime = intent.getIntExtra("prep_time", 0)
-        val mealType = intent.getStringExtra("meal_type") ?: "meal"
+            val recipeLabel = intent.getStringExtra("recipe_label") ?: "Unknown Recipe"
+            val recipeId = intent.getStringExtra("recipe_id")
+            val notificationId = intent.getIntExtra("notification_id", 0)
+            val scheduledTime = intent.getLongExtra("scheduled_time", 0)
+            val prepTime = intent.getIntExtra("prep_time", 0)
+            val mealType = intent.getStringExtra("meal_type") ?: "meal"
 
-        showRecipeReminderNotification(
-            context,
-            recipeLabel,
-            recipeId,
-            notificationId,
-            scheduledTime,
-            prepTime,
-            mealType
-        )
+            showRecipeReminderNotification(
+                context,
+                recipeLabel,
+                recipeId,
+                notificationId,
+                scheduledTime,
+                prepTime,
+                mealType
+            )
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Critical error in NotificationReceiver", e)
+            // Don't crash the system UI
+        }
     }
-
     private fun showRecipeReminderNotification(
         context: Context,
         recipeLabel: String,
@@ -50,27 +54,11 @@ class RecipeNotificationReceiver : BroadcastReceiver() {
         try {
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
 
-            // Format the scheduled time for the notification
-            val dateFormat = SimpleDateFormat("EEE, MMM d 'at' h:mm a", Locale.getDefault())
-            val scheduledTimeFormatted = if (scheduledTime > 0) {
-                dateFormat.format(Date(scheduledTime))
-            } else {
-                "tomorrow"
-            }
-
-            // Create prep time message
-            val prepTimeMessage = if (prepTime > 0) {
-                " (takes ${prepTime}min to prepare)"
-            } else {
-                ""
-            }
-
             // Create intent to open the app
-            val appIntent = Intent(context, MainActivity::class.java).apply {
+            val appIntent = Intent(context, ViewRecipeActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 putExtra("source", "notification")
-                putExtra("recipe_id", recipeId)
-                putExtra("open_calendar", true)
+                recipeId?.let { putExtra("RECIPE_ID", it) }
             }
 
             val pendingIntent = PendingIntent.getActivity(
@@ -80,83 +68,78 @@ class RecipeNotificationReceiver : BroadcastReceiver() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            // Create the notification with recipe details
             val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.logo)
-                .setContentTitle("🍳 $mealType Reminder")
-                .setContentText("$recipeLabel is tomorrow!")
-                .setStyle(NotificationCompat.BigTextStyle()
-                    .bigText("Your $mealType '$recipeLabel' is scheduled for $scheduledTimeFormatted.$prepTimeMessage\n\nDon't forget to check your ingredients! 🛒"))
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setContentTitle("🍳 Meal Reminder")
+                .setContentText("Time to prepare your dish!")
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
-                .setCategory(NotificationCompat.CATEGORY_REMINDER)
                 .setShowWhen(true)
                 .setWhen(System.currentTimeMillis())
-
-            // Add action buttons
-            val dismissIntent = Intent(context, NotificationDismissReceiver::class.java).apply {
-                putExtra("notification_id", notificationId)
-            }
-
-            val dismissPendingIntent = PendingIntent.getBroadcast(
-                context,
-                notificationId + 1000,
-                dismissIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-
-            builder.addAction(
-                R.drawable.ic_baseline_check_24,
-                "Got it!",
-                dismissPendingIntent
-            )
-
-            // Add "View Calendar" action
-            val calendarIntent = Intent(context, CalendarActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-
-            val calendarPendingIntent = PendingIntent.getActivity(
-                context,
-                notificationId + 2000,
-                calendarIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-
-            builder.addAction(
-                R.drawable.ic_baseline_calendar_today_24,
-                "View Calendar",
-                calendarPendingIntent
-            )
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
 
             // Ensure notification channel exists
             createNotificationChannel(context)
 
+            // Try to notify
             notificationManager.notify(notificationId, builder.build())
-            Log.d(TAG, "✅ Recipe reminder shown for: $recipeLabel")
+            Log.d(TAG, "✅ Simple notification shown for: $recipeLabel")
 
         } catch (e: Exception) {
-            Log.e(TAG, "Error showing recipe reminder notification", e)
+            Log.e(TAG, "❌ Error showing notification", e)
+            // Fallback: try with even simpler notification
+            showFallbackNotification(context, recipeLabel, notificationId)
         }
     }
 
+    // Fallback method with minimal configuration
+    private fun showFallbackNotification(context: Context, recipeLabel: String, notificationId: Int) {
+        try {
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+
+            val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setContentTitle("Recipe Reminder")
+                .setContentText(recipeLabel)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setAutoCancel(true)
+
+            notificationManager.notify(notificationId + 1000, builder.build())
+            Log.d(TAG, "✅ Fallback notification shown")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Even fallback notification failed", e)
+        }
+    }
+
+
     private fun createNotificationChannel(context: Context) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            val channel = android.app.NotificationChannel(
-                CHANNEL_ID,
-                "Recipe Reminders",
-                android.app.NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Reminders for your scheduled recipes"
-                enableVibration(true)
-                vibrationPattern = longArrayOf(0, 500, 200, 500)
-                setShowBadge(true)
-                lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
-            }
-
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
-            notificationManager.createNotificationChannel(channel)
+
+            // Check if channel already exists to avoid recreation
+            val existingChannel = notificationManager.getNotificationChannel(CHANNEL_ID)
+            if (existingChannel == null) {
+                try {
+                    val channel = android.app.NotificationChannel(
+                        CHANNEL_ID,
+                        "Recipe Reminders",
+                        android.app.NotificationManager.IMPORTANCE_HIGH
+                    ).apply {
+                        description = "Reminders for your scheduled recipes"
+                        enableVibration(true)
+                        vibrationPattern = longArrayOf(0, 250, 250, 250) // Simpler pattern
+                        setShowBadge(true)
+                        lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
+                        // Add sound
+                        setSound(android.provider.Settings.System.DEFAULT_NOTIFICATION_URI, null)
+                    }
+                    notificationManager.createNotificationChannel(channel)
+                    Log.d(TAG, "✅ Notification channel created successfully")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error creating notification channel", e)
+                }
+            }
         }
     }
 }

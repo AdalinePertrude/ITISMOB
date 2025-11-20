@@ -7,30 +7,91 @@ import android.content.Intent
 import android.util.Log
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.String
 
 class NotificationScheduler(private val context: Context) {
 
     companion object {
         private const val TAG = "NotificationScheduler"
         private const val REQUEST_CODE_BASE = 1000
+
+        fun testNotification(context: Context) {
+            Log.d(TAG, "🧪 Testing notification system...")
+
+            val testRecipe = RecipeModel(
+                id = "6d3953f205ca48a7912901f881a31f54",
+                author = "Test Author",
+                calories = 200,
+                cautions = listOf("Test Caution"),
+                createdAt = "",
+                cuisineType = listOf("Test Cuisine"),
+                dietLabels = listOf("Test Diet"),
+                dishType = listOf("Test Dish"),
+                healthLabels = listOf("Test Health"),
+                imageId = "",
+                ingredients = listOf("Test Ingredient 1", "Test Ingredient 2"),
+                instructions = listOf("Test Instruction 1", "Test Instruction 2"),
+                label = "Test Recipe",
+                mealType = listOf("Dinner"),
+                prepTime = 30,
+                rating = 4.5,
+                serving = 2,
+                isPublished = false,
+                isSaved = false,
+                description = "Test Description"
+            )
+
+            val testScheduledRecipe = ScheduledRecipe(
+                recipe = testRecipe,
+                scheduledDateTime = Date(System.currentTimeMillis() + 5000) // 5 seconds from now
+            )
+
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val intent = Intent(context, RecipeNotificationReceiver::class.java).apply {
+                putExtra("recipe_id", testRecipe.id)
+                putExtra("recipe_label", testRecipe.label)
+                putExtra("recipe_image_id", testRecipe.imageId)
+                putExtra("notification_id", 9999)
+                putExtra("scheduled_time", System.currentTimeMillis())
+                putExtra("prep_time", testRecipe.prepTime)
+                putExtra("meal_type", "Test Meal")
+            }
+
+            val pendingIntent = PendingIntent.getBroadcast(
+                context,
+                9999,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            // Schedule for 1 second from now
+            alarmManager.setExact(
+                AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis() + 1000,
+                pendingIntent
+            )
+
+            Log.d(TAG, "🧪 Test notification scheduled for 1 second from now")
+        }
+
     }
 
     fun scheduleRecipeNotification(scheduledRecipe: ScheduledRecipe) {
         val notificationTime = scheduledRecipe.getNotificationTime()
         val currentTime = System.currentTimeMillis()
 
-        // Format for logging
-        val dateFormat = SimpleDateFormat("MMM dd, yyyy 'at' hh:mm a", Locale.getDefault())
-        val notificationTimeFormatted = dateFormat.format(Date(notificationTime))
-        val scheduledTimeFormatted = dateFormat.format(scheduledRecipe.scheduledDateTime)
+        // Enhanced logging
+        val dateFormat = SimpleDateFormat("MMM dd, yyyy 'at' hh:mm:ss a", Locale.getDefault())
 
-        Log.d(TAG, "Scheduling notification for: ${scheduledRecipe.recipe.label}")
-        Log.d(TAG, "Scheduled meal time: $scheduledTimeFormatted")
-        Log.d(TAG, "Notification time (1 day before): $notificationTimeFormatted")
+        Log.d(TAG, "=== SCHEDULING NOTIFICATION ===")
+        Log.d(TAG, "Recipe: ${scheduledRecipe.recipe.label}")
+        Log.d(TAG, "Current time: ${dateFormat.format(Date(currentTime))}")
+        Log.d(TAG, "Scheduled time: ${dateFormat.format(Date(notificationTime))}")
+        Log.d(TAG, "Time until notification: ${(notificationTime - currentTime) / 1000 / 60} minutes")
+        Log.d(TAG, "Notification ID: ${scheduledRecipe.notificationId}")
 
-        // Don't schedule if notification time is in the past
         if (notificationTime <= currentTime) {
-            Log.w(TAG, "Notification time is in the past for: ${scheduledRecipe.recipe.label}")
+            Log.w(TAG, "❌ Notification time is in the past - NOT scheduling")
             return
         }
 
@@ -53,7 +114,7 @@ class NotificationScheduler(private val context: Context) {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            // Use exact alarm for precise timing
+            // Schedule the alarm
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
                 alarmManager.setExactAndAllowWhileIdle(
                     AlarmManager.RTC_WAKEUP,
@@ -68,14 +129,14 @@ class NotificationScheduler(private val context: Context) {
                 )
             }
 
-            Log.d(TAG, "✅ Notification scheduled successfully for: ${scheduledRecipe.recipe.label}")
-            Log.d(TAG, "⏰ Will notify at: $notificationTimeFormatted")
+            Log.d(TAG, "✅ Notification scheduled successfully!")
+            Log.d(TAG, "⏰ Will trigger at: ${dateFormat.format(Date(notificationTime))}")
 
         } catch (e: SecurityException) {
-            Log.e(TAG, "AlarmManager permission denied", e)
+            Log.e(TAG, "❌ AlarmManager permission denied", e)
             showPermissionWarning()
         } catch (e: Exception) {
-            Log.e(TAG, "Error scheduling notification", e)
+            Log.e(TAG, "❌ Error scheduling notification", e)
         }
     }
 
@@ -109,12 +170,4 @@ class NotificationScheduler(private val context: Context) {
         }
     }
 
-    fun rescheduleAllNotifications(scheduledRecipes: List<ScheduledRecipe>) {
-        Log.d(TAG, "Rescheduling ${scheduledRecipes.size} recipes")
-        scheduledRecipes.forEach { scheduledRecipe ->
-            if (scheduledRecipe.isNotificationScheduled()) {
-                scheduleRecipeNotification(scheduledRecipe)
-            }
-        }
-    }
 }

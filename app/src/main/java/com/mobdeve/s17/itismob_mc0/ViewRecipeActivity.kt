@@ -1,8 +1,10 @@
 package com.mobdeve.s17.itismob_mc0
 
 import android.app.DatePickerDialog
+import android.app.Notification
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.LinearLayout
@@ -16,6 +18,9 @@ import java.util.Calendar
 import java.util.Locale
 
 class ViewRecipeActivity : ComponentActivity() {
+    private lateinit var notificationScheduler: NotificationScheduler
+    private lateinit var currentRecipe: RecipeModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_view_recipe)
@@ -34,7 +39,6 @@ class ViewRecipeActivity : ComponentActivity() {
         val returnPageButton: ImageButton = findViewById(R.id.returnPageBtn)
         val viewCommentsButton: Button = findViewById(R.id.viewCommsBtn)
         var ifClicked= false
-
         val recipeId = intent.getStringExtra("RECIPE_ID")
         // Log.d("DEBUG", "id: $recipeId")
         if (recipeId != null) {
@@ -44,7 +48,7 @@ class ViewRecipeActivity : ComponentActivity() {
             finish()
         }
 
-
+        setupNotificationScheduling()
 
         savedBtn.setOnClickListener {
             if(ifClicked) {
@@ -98,11 +102,18 @@ class ViewRecipeActivity : ComponentActivity() {
                         month = selectedMonth,
                         day = selectedDay
                     ) { success ->
-                        Toast.makeText(
-                            this,
-                            if (success) "Added to planner!" else "Failed to add",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
+                        runOnUiThread {
+                            if (success) {
+                                Toast.makeText(this, "Added to planner!", Toast.LENGTH_SHORT).show()
+
+                                // Schedule notification if we have the recipe data
+                                if (::currentRecipe.isInitialized) {
+                                    scheduleNotificationForRecipe(currentRecipe, selectedYear, selectedMonth, selectedDay)
+                                }
+                            } else {
+                                Toast.makeText(this, "Failed to add to planner", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     }
 
                     val date = "Date Selected: ${selectedDay}/${selectedMonth + 1}/$selectedYear"
@@ -111,6 +122,7 @@ class ViewRecipeActivity : ComponentActivity() {
                 year, month, day
             )
             datePickerDialog.show()
+            NotificationScheduler.testNotification(this)
         }
 
 
@@ -129,10 +141,10 @@ class ViewRecipeActivity : ComponentActivity() {
         DatabaseHelper.searchRecipeByField("id", recipeId) { recipe ->
             runOnUiThread {
                 if (recipe != null) {
-                    // Update UI with recipe data
+                    currentRecipe = recipe
                     updateUI(recipe)
                 } else {
-
+                    Toast.makeText(this, "Recipe not found", Toast.LENGTH_SHORT).show()
                 }
 
             }
@@ -147,6 +159,38 @@ class ViewRecipeActivity : ComponentActivity() {
         Glide.with(this)
             .load(recipe.imageId)
             .into(findViewById(R.id.imageView2))
+    }
+
+    private fun scheduleNotificationForRecipe(recipe: RecipeModel, year: Int, month: Int, day: Int) {
+        try {
+            // Create calendar instance for the scheduled date at 9:00 AM
+            val scheduledCalendar = Calendar.getInstance().apply {
+                set(year, month, day, 9, 0, 0) // Set to 9:00 AM on selected date
+                set(Calendar.MILLISECOND, 0)
+            }
+
+            // Create scheduled recipe
+            val scheduledRecipe = ScheduledRecipe(
+                recipe = recipe,
+                scheduledDateTime = scheduledCalendar.time
+            )
+
+            // Schedule the notification
+            notificationScheduler.scheduleRecipeNotification(scheduledRecipe)
+
+            // Log success
+            val dateFormat = SimpleDateFormat("MMM dd, yyyy 'at' hh:mm a", Locale.getDefault())
+            Log.d("ViewRecipeActivity", "✅ Notification scheduled for: ${dateFormat.format(scheduledCalendar.time)}")
+
+        } catch (e: Exception) {
+            Log.e("ViewRecipeActivity", "❌ Error scheduling notification", e)
+            Toast.makeText(this, "Error scheduling reminder", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun setupNotificationScheduling() {
+        Toast.makeText(this, "✅ Recipe reminders enabled!", Toast.LENGTH_SHORT).show()
+        notificationScheduler = NotificationScheduler(this)
     }
 
 

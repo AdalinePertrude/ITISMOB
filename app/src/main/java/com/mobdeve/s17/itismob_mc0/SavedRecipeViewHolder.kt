@@ -9,6 +9,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.mobdeve.s17.itismob_mc0.databinding.SavedLayoutBinding
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 class SavedRecipeViewHolder(
     private val binding: SavedLayoutBinding,
@@ -26,9 +29,13 @@ class SavedRecipeViewHolder(
 
     private val localDb = SQLiteDatabaseHandler(context)
     private lateinit var recipeRepository: RecipeRepository
+    private lateinit var notificationScheduler: NotificationScheduler
+
 
     init {
         recipeRepository = RecipeRepository(binding.root.context)
+
+        notificationScheduler = NotificationScheduler(binding.root.context)
     }
 
     fun bindData(recipe: RecipeModel) {
@@ -67,11 +74,15 @@ class SavedRecipeViewHolder(
                     month = month,
                     day = day
                 ) { success ->
-                    android.widget.Toast.makeText(
-                        context,
-                        if (success) "Added to planner!" else "Failed to add",
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
+                    android.os.Handler(context.mainLooper).post {
+                        if (success) {
+                            Toast.makeText(context, "Added to planner!", Toast.LENGTH_SHORT).show()
+                            // Schedule notification after successful calendar addition
+                            scheduleNotificationForRecipe(recipe, year, month, day)
+                        } else {
+                            Toast.makeText(context, "Failed to add to planner", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
             }
         }
@@ -152,4 +163,39 @@ class SavedRecipeViewHolder(
             updateSaveButtonUI(true)
         }
     }
+
+    private fun scheduleNotificationForRecipe(recipe: RecipeModel, year: Int, month: Int, day: Int) {
+        try {
+            // Create calendar instance for the scheduled date at 9:00 AM
+            val scheduledCalendar = Calendar.getInstance().apply {
+                set(year, month, day, 9, 0, 0) // Set to 9:00 AM on selected date
+                set(Calendar.MILLISECOND, 0)
+            }
+
+            // Create scheduled recipe
+            val scheduledRecipe = ScheduledRecipe(
+                recipe = recipe,
+                scheduledDateTime = scheduledCalendar.time
+            )
+
+            // Schedule the notification
+            notificationScheduler.scheduleRecipeNotification(scheduledRecipe)
+
+            // Log success
+            val dateFormat = SimpleDateFormat("MMM dd, yyyy 'at' hh:mm a", Locale.getDefault())
+            Log.d("SavedRecipeViewHolder", "✅ Notification scheduled for: ${dateFormat.format(scheduledCalendar.time)}")
+
+            // Show success message to user
+            Toast.makeText(
+                context,
+                "Reminder set for ${dateFormat.format(scheduledCalendar.time)}",
+                Toast.LENGTH_LONG
+            ).show()
+
+        } catch (e: Exception) {
+            Log.e("SavedRecipeViewHolder", "❌ Error scheduling notification", e)
+            Toast.makeText(context, "Error scheduling reminder", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 }
