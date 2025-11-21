@@ -64,7 +64,7 @@
                 android:maxLines="1"
                 android:text="Dishname"
                 android:textColor="@color/text_color_brown"
-                android:textSize="16sp"
+                android:textSize="20sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toStartOf="@+id/pub_recipe_rating_tv"
                 app:layout_constraintStart_toStartOf="parent"

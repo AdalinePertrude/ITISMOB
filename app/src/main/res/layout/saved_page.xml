@@ -14,24 +14,27 @@
             android:id="@+id/returnPageBtn2"
             android:layout_width="58dp"
             android:layout_height="48dp"
-            android:layout_marginStart="64dp"
             android:layout_marginTop="16dp"
             android:scaleType="centerCrop"
             android:src="@drawable/outline_arrow_back_24"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/textView"
+            app:layout_constraintHorizontal_bias="0.045"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
+            android:layout_marginStart="64dp"
             android:layout_marginTop="16dp"
+            android:layout_marginEnd="36dp"
             android:text="Saved Recipes"
             android:textColor="#8C4613"
             android:textSize="32sp"
             android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.465"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 

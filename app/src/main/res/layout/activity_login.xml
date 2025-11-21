@@ -7,6 +7,18 @@
     android:layout_height="match_parent"
     android:background="#FFF8DC">
 
+    <ImageView
+        android:id="@+id/logoIv2"
+        android:layout_width="124dp"
+        android:layout_height="119dp"
+        android:layout_marginStart="60dp"
+        android:layout_marginEnd="67dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/logo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:layout_editor_absoluteY="2dp" />
+
     <EditText
         android:id="@+id/password_loginEt"
         android:layout_width="300dp"
@@ -48,12 +60,12 @@
         android:id="@+id/signupTv"
         android:layout_width="95dp"
         android:layout_height="50dp"
-        android:layout_marginStart="156dp"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="121dp"
         android:text="Login"
         android:textColor="#5D4037"
         android:textSize="35sp"
         android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -112,7 +124,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="143dp"
-        android:layout_marginTop="128dp"
+        android:layout_marginTop="64dp"
         android:clickable="true"
         android:text="@string/signup_underline"
         android:textColor="#5D4037"

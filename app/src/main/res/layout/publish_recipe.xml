@@ -2,12 +2,12 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFF8DC">
+    android:background="#ffffff">
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:padding="16dp">
 
 
@@ -21,6 +21,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:contentDescription="Recipe Image"
+                android:outlineProvider="background"
                 android:scaleType="centerCrop"
                 android:src="@android:drawable/screen_background_light_transparent" />
 
@@ -32,7 +33,7 @@
                 android:layout_alignParentBottom="true"
                 android:layout_marginEnd="155dp"
                 android:layout_marginBottom="81dp"
-                android:background="@android:color/transparent"
+                android:background="@color/gold"
                 android:contentDescription="Add Photo"
                 android:src="@drawable/ic_add" />
         </RelativeLayout>
@@ -41,9 +42,9 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginBottom="8dp"
             android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:orientation="horizontal">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -69,38 +70,40 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginBottom="8dp"
             android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:orientation="horizontal">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
                 android:text="Cuisine"
-                android:textSize="16sp"
                 android:textColor="#000"
-                android:layout_marginEnd="8dp"/>
+                android:textSize="20sp" />
+
             <Spinner
                 android:id="@+id/cuisineSpinner"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                />
+                android:layout_weight="1" />
         </LinearLayout>
 
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginBottom="8dp"
             android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:orientation="horizontal">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
                 android:text="Prep Time"
-                android:textSize="16sp"
                 android:textColor="#000"
-                android:layout_marginEnd="8dp"/>
+                android:textSize="16sp" />
 
             <EditText
                 android:id="@+id/prepTimeEt"
@@ -108,7 +111,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
-                android:hint="Minutes"
+                android:hint="In Minutes"
                 android:inputType="number"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -118,16 +121,17 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginBottom="8dp"
             android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:orientation="horizontal">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
                 android:text="Serving Size"
-                android:textSize="16sp"
                 android:textColor="#000"
-                android:layout_marginEnd="8dp"/>
+                android:textSize="16sp" />
 
             <EditText
                 android:id="@+id/servingEt"
@@ -143,10 +147,10 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_height="200dp"
+            android:layout_marginBottom="8dp"
             android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:orientation="horizontal">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -160,12 +164,15 @@
             <EditText
                 android:id="@+id/descriptionEt"
                 android:layout_width="0dp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:layout_height="100dp"
-                android:hint="Description"
-                android:textSize="16sp"
-                android:background="@android:color/transparent"
-                android:gravity="top"/>
+                android:background="#FFFFFF"
+                android:gravity="center_vertical|start"
+                android:hint="Write your description...."
+                android:padding="12dp"
+                android:textColor="#000000"
+                android:textColorHint="#9E9E9E"
+                android:textSize="16sp" />
         </LinearLayout>
 
 
@@ -176,24 +183,24 @@
             android:layout_marginTop="13dp"
             android:text="Ingredients"
             android:textColor="#000000"
-            android:textSize="15sp"
+            android:textSize="20sp"
             android:textStyle="bold" />
 
 
         <LinearLayout
             android:id="@+id/ingredientInputContainer"
-            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="7dp">
+            android:layout_marginTop="7dp"
+            android:orientation="vertical">
 
 
             <LinearLayout
                 android:id="@+id/ingredientRow1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:gravity="center_vertical"
+                android:orientation="horizontal"
                 android:paddingTop="4dp"
                 android:paddingBottom="4dp">
 
@@ -212,12 +219,12 @@
                     android:layout_width="80dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:hint="g"
-                    android:inputType="numberDecimal"
+                    android:background="@android:color/transparent"
                     android:gravity="center"
-                    android:background="@android:color/transparent" />
+                    android:hint="g"
+                    android:inputType="numberDecimal" />
 
-                <TextView
+                <EditText
                     android:id="@+id/ingredientCals1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -241,18 +248,19 @@
             android:id="@+id/addIngredientBtn"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/ic_add"
-            android:background="@android:color/transparent"
+            android:layout_marginTop="4dp"
+            android:background="@color/grey"
+            android:backgroundTint="#FFC107"
             android:contentDescription="Add Ingredient"
-            android:layout_marginTop="4dp"/>
+            android:src="@drawable/ic_add" />
 
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:layout_marginTop="12dp"
-            android:gravity="end|center_vertical">
+            android:gravity="end|center_vertical"
+            android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/totalCalsLabel"
@@ -280,38 +288,38 @@
             android:layout_marginTop="20dp"
             android:text="Steps"
             android:textColor="#000000"
-            android:textSize="15sp"
+            android:textSize="20sp"
             android:textStyle="bold" />
 
         <LinearLayout
             android:id="@+id/stepInputContainer"
-            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="8dp"
+            android:orientation="vertical">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
                     android:text="Step 1"
-                    android:textSize="15sp"
                     android:textColor="#000"
-                    android:layout_marginEnd="8dp"/>
+                    android:textSize="15sp" />
 
                 <EditText
                     android:id="@+id/stepEt1"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
                     android:hint="Describe step"
-                    android:textSize="15sp"
-                    android:background="@android:color/transparent"/>
+                    android:textSize="15sp" />
             </LinearLayout>
         </LinearLayout>
 
@@ -319,10 +327,10 @@
             android:id="@+id/addStepBtn"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/ic_add"
-            android:background="@android:color/transparent"
+            android:layout_marginTop="4dp"
+            android:background="#FFC107"
             android:contentDescription="Add Step"
-            android:layout_marginTop="4dp"/>
+            android:src="@drawable/ic_add" />
 
 
         <Button

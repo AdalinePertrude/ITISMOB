@@ -8,12 +8,25 @@
     android:background="#FFF8DC"
     tools:context=".SignupActivity">
 
+    <ImageView
+        android:id="@+id/logoIv3"
+        android:layout_width="124dp"
+        android:layout_height="119dp"
+        android:layout_marginStart="60dp"
+        android:layout_marginEnd="67dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/logo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.493"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:layout_editor_absoluteY="-3dp" />
+
     <TextView
         android:id="@+id/signupTv"
         android:layout_width="wrap_content"
         android:layout_height="50dp"
         android:layout_marginStart="48dp"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="104dp"
         android:text="Create an Account"
         android:textColor="#5D4037"
         android:textSize="35sp"
@@ -26,7 +39,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="48dp"
-        android:layout_marginTop="36dp"
+        android:layout_marginTop="16dp"
         android:text="Full Name"
         android:textColor="#5D4037"
         android:textSize="20sp"
@@ -143,7 +156,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="100dp"
-        android:layout_marginTop="76dp"
+        android:layout_marginTop="16dp"
         android:clickable="true"
         android:text="@string/login_underline"
         android:textColor="#5D4037"

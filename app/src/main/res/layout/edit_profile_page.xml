@@ -7,11 +7,23 @@
     android:background="#4DFFF8DC">
 
 
+    <ImageView
+        android:id="@+id/logoIv4"
+        android:layout_width="104dp"
+        android:layout_height="88dp"
+        android:layout_marginStart="60dp"
+        android:layout_marginEnd="67dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/logo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:layout_editor_absoluteY="2dp" />
+
     <TextView
         android:id="@+id/textView2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="64dp"
+        android:layout_marginTop="90dp"
         android:text="Edit Profile"
         android:textAlignment="center"
         android:textColor="@color/text_color_brown"
@@ -28,7 +40,6 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="1dp"
-        android:layout_marginTop="16dp"
         android:layout_marginEnd="1dp"
         android:orientation="vertical"
         android:padding="20dp"

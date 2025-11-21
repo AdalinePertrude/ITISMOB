@@ -15,11 +15,26 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+
+        <ImageView
+            android:id="@+id/imageView3"
+            android:layout_width="115dp"
+            android:layout_height="115dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/circle_background"
+            android:padding="8dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_profile"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/fnameHolderTv"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.506" />
+
         <TextView
             android:id="@+id/fnameHolderTv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="88dp"
+            android:layout_marginStart="148dp"
             android:layout_marginTop="68dp"
             android:text="Full Name:"
             android:textColor="#5D4037"
@@ -32,7 +47,7 @@
             android:id="@+id/fNameProfileTv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="11dp"
+            android:layout_marginStart="8dp"
             android:layout_marginTop="68dp"
             android:text="usernameholder"
             android:textColor="#5D4037"
@@ -45,7 +60,7 @@
             android:id="@+id/emailHolderTv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="88dp"
+            android:layout_marginStart="148dp"
             android:layout_marginTop="28dp"
             android:layout_marginBottom="54dp"
             android:text="Email:"
@@ -54,7 +69,8 @@
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/fnameHolderTv" />
+            app:layout_constraintTop_toBottomOf="@+id/fnameHolderTv"
+            app:layout_constraintVertical_bias="1.0" />
 
         <TextView
             android:id="@+id/emailProfileTv"
