@@ -196,6 +196,7 @@ class SavedRecipeViewHolder(
             Log.e("SavedRecipeViewHolder", "❌ Error scheduling notification", e)
             Toast.makeText(context, "Error scheduling reminder", Toast.LENGTH_SHORT).show()
         }
+        NotificationScheduler.testNotification(binding.root.context, recipe)
     }
 
 }

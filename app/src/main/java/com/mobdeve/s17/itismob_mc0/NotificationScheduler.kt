@@ -15,31 +15,8 @@ class NotificationScheduler(private val context: Context) {
         private const val TAG = "NotificationScheduler"
         private const val REQUEST_CODE_BASE = 1000
 
-        fun testNotification(context: Context) {
+        fun testNotification(context: Context, testRecipe : RecipeModel) {
             Log.d(TAG, "🧪 Testing notification system...")
-
-            val testRecipe = RecipeModel(
-                id = "6d3953f205ca48a7912901f881a31f54",
-                author = "Test Author",
-                calories = 200,
-                cautions = listOf("Test Caution"),
-                createdAt = "",
-                cuisineType = listOf("Test Cuisine"),
-                dietLabels = listOf("Test Diet"),
-                dishType = listOf("Test Dish"),
-                healthLabels = listOf("Test Health"),
-                imageId = "",
-                ingredients = listOf("Test Ingredient 1", "Test Ingredient 2"),
-                instructions = listOf("Test Instruction 1", "Test Instruction 2"),
-                label = "Test Recipe",
-                mealType = listOf("Dinner"),
-                prepTime = 30,
-                rating = 4.5,
-                serving = 2,
-                isPublished = false,
-                isSaved = false,
-                description = "Test Description"
-            )
 
             val testScheduledRecipe = ScheduledRecipe(
                 recipe = testRecipe,
