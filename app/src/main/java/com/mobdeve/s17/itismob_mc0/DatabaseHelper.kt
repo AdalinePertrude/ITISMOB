@@ -154,11 +154,7 @@ class DatabaseHelper {
                 }
         }
 
-        fun addCommentToRecipe(
-            recipeId: String,
-            comment: CommentModel,
-            onComplete: (Boolean) -> Unit
-        ) {
+        fun addCommentToRecipe(recipeId: String, comment: CommentModel, onComplete: (Boolean) -> Unit) {
             val db = Firebase.firestore
 
             val commentData = hashMapOf(
@@ -259,11 +255,7 @@ class DatabaseHelper {
                 }
         }
 
-        fun updateRecipeAvgRating(
-            recipeid: String,
-            avgRating: Double,
-            onComplete: (Boolean) -> Unit
-        ) {
+        fun updateRecipeAvgRating(recipeid: String, avgRating: Double, onComplete: (Boolean) -> Unit) {
             val db = Firebase.firestore
 
             db.collection("recipes")
@@ -279,12 +271,7 @@ class DatabaseHelper {
                 }
         }
 
-        fun updateUserInfo(
-            userid: String,
-            name: String,
-            email: String,
-            onComplete: (Boolean, String?) -> Unit
-        ) {
+        fun updateUserInfo(userid: String, name: String, email: String, onComplete: (Boolean, String?) -> Unit) {
             val db = Firebase.firestore
 
             val userInfo = mapOf<String, Any>(
@@ -306,12 +293,7 @@ class DatabaseHelper {
                 }
         }
 
-        fun updateUserPassword(
-            userid: String,
-            oldPassword: String,
-            newPassword: String,
-            onComplete: (Boolean, String?) -> Unit
-        ) {
+        fun updateUserPassword(userid: String, oldPassword: String, newPassword: String, onComplete: (Boolean, String?) -> Unit) {
             verifyUserPassword(userid, oldPassword) { isCorrect, error ->
                 if (isCorrect) {
                     // Hash and update new password
@@ -335,11 +317,7 @@ class DatabaseHelper {
             }
         }
 
-        fun verifyUserPassword(
-            userid: String,
-            inputPassword: String,
-            onComplete: (Boolean, String?) -> Unit
-        ) {
+        fun verifyUserPassword(userid: String, inputPassword: String, onComplete: (Boolean, String?) -> Unit) {
             val db = Firebase.firestore
 
             db.collection("users")
@@ -461,11 +439,7 @@ class DatabaseHelper {
                 }
         }
 
-        fun getAddedToCalendarRecipes(
-            selectedDay: String,
-            userid: String,
-            onComplete: (ArrayList<RecipeModel>) -> Unit
-        ) {
+        fun getAddedToCalendarRecipes(selectedDay: String, userid: String, onComplete: (ArrayList<RecipeModel>) -> Unit) {
             val db = Firebase.firestore
 
             Log.d("DatabaseHelper", "Searching for recipes for date: '$selectedDay'")
@@ -713,6 +687,172 @@ class DatabaseHelper {
                         Log.d("DatabaseHelper", "Date matches target: $datesMatch")
                     }
                     Log.d("DatabaseHelper", "=== END DEBUG ===")
+                }
+        }
+
+
+        fun updateUsernameAcrossAllData(oldUsername: String, newUsername: String, onComplete: (Boolean, String?) -> Unit) {
+            val db = Firebase.firestore
+
+            Log.d("DatabaseHelper", "Starting username update from '$oldUsername' to '$newUsername'")
+
+            // Update in recipes collection (as author)
+            updateRecipeAuthors(oldUsername, newUsername) { recipeSuccess ->
+                if (!recipeSuccess) {
+                    Log.e("DatabaseHelper", "Failed to update recipe authors")
+                    onComplete(false, "Failed to update recipe authors")
+                    return@updateRecipeAuthors
+                }
+
+                Log.d("DatabaseHelper", "Successfully updated recipe authors")
+
+                // Update in comments across all recipes
+                updateCommentsAuthor(oldUsername, newUsername) { commentSuccess ->
+                    if (!commentSuccess) {
+                        Log.e("DatabaseHelper", "Failed to update comments")
+                        onComplete(false, "Failed to update comments")
+                        return@updateCommentsAuthor
+                    }
+
+                    Log.d("DatabaseHelper", "Successfully updated comments")
+
+                    // Update in ratings across all recipes
+                    updateRatingsAuthor(oldUsername, newUsername) { ratingSuccess ->
+                        if (!ratingSuccess) {
+                            Log.e("DatabaseHelper", "Failed to update ratings")
+                            onComplete(false, "Failed to update ratings")
+                            return@updateRatingsAuthor
+                        }
+
+                        Log.d("DatabaseHelper", "Successfully updated ratings")
+                        Log.d("DatabaseHelper", "Username update completed successfully")
+                        onComplete(true, null)
+                    }
+                }
+            }
+        }
+
+        /**
+         * Update author name in all recipes created by this user
+         */
+        private fun updateRecipeAuthors(oldUsername: String, newUsername: String, onComplete: (Boolean) -> Unit) {
+            val db = Firebase.firestore
+
+            db.collection("recipes")
+                .whereEqualTo("author", oldUsername)
+                .get()
+                .addOnSuccessListener { documents ->
+                    Log.d("DatabaseHelper", "Found ${documents.size()} recipes to update")
+
+                    if (documents.isEmpty) {
+                        Log.d("DatabaseHelper", "No recipes found for author: $oldUsername")
+                        onComplete(true)
+                        return@addOnSuccessListener
+                    }
+
+                    val batch = db.batch()
+                    for (document in documents) {
+                        batch.update(document.reference, "author", newUsername)
+                        Log.d("DatabaseHelper", "Updating recipe author: ${document.id}")
+                    }
+
+                    batch.commit()
+                        .addOnSuccessListener {
+                            Log.d("DatabaseHelper", "Updated author name in ${documents.size()} recipes")
+                            onComplete(true)
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e("DatabaseHelper", "Failed to update recipe authors: ${exception.message}")
+                            onComplete(false)
+                        }
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("DatabaseHelper", "Error finding recipes to update: ${exception.message}")
+                    onComplete(false)
+                }
+        }
+
+        /**
+         * Update commentor name in all comments across all recipes
+         */
+        private fun updateCommentsAuthor(oldUsername: String, newUsername: String, onComplete: (Boolean) -> Unit) {
+            val db = Firebase.firestore
+
+            // Search across all comments in all recipes
+            db.collectionGroup("comments")
+                .whereEqualTo("commentor", oldUsername)
+                .get()
+                .addOnSuccessListener { querySnapshot ->
+                    Log.d("DatabaseHelper", "Found ${querySnapshot.documents.size} comments to update")
+
+                    if (querySnapshot.isEmpty) {
+                        Log.d("DatabaseHelper", "No comments found for user: $oldUsername")
+                        onComplete(true)
+                        return@addOnSuccessListener
+                    }
+
+                    val batch = db.batch()
+                    for (document in querySnapshot.documents) {
+                        val recipeId = document.reference.parent.parent?.id
+                        Log.d("DatabaseHelper", "Updating comment in recipe: $recipeId, comment: ${document.id}")
+                        batch.update(document.reference, "commentor", newUsername)
+                    }
+
+                    batch.commit()
+                        .addOnSuccessListener {
+                            Log.d("DatabaseHelper", "Updated commentor name in ${querySnapshot.size()} comments")
+                            onComplete(true)
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e("DatabaseHelper", "Failed to update comments: ${exception.message}")
+                            onComplete(false)
+                        }
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("DatabaseHelper", "Error finding comments to update: ${exception.message}")
+                    onComplete(false)
+                }
+        }
+
+        /**
+         * Update rater name in all ratings across all recipes
+         */
+        private fun updateRatingsAuthor(oldUsername: String, newUsername: String, onComplete: (Boolean) -> Unit) {
+            val db = Firebase.firestore
+
+            // Search across all ratings in all recipes
+            db.collectionGroup("ratings")
+                .whereEqualTo("rater", oldUsername)
+                .get()
+                .addOnSuccessListener { querySnapshot ->
+                    Log.d("DatabaseHelper", "Found ${querySnapshot.documents.size} ratings to update")
+
+                    if (querySnapshot.isEmpty) {
+                        Log.d("DatabaseHelper", "No ratings found for user: $oldUsername")
+                        onComplete(true)
+                        return@addOnSuccessListener
+                    }
+
+                    val batch = db.batch()
+                    for (document in querySnapshot.documents) {
+                        val recipeId = document.reference.parent.parent?.id
+                        Log.d("DatabaseHelper", "Updating rating in recipe: $recipeId, rating: ${document.id}")
+                        batch.update(document.reference, "rater", newUsername)
+                    }
+
+                    batch.commit()
+                        .addOnSuccessListener {
+                            Log.d("DatabaseHelper", "Updated rater name in ${querySnapshot.size()} ratings")
+                            onComplete(true)
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e("DatabaseHelper", "Failed to update ratings: ${exception.message}")
+                            onComplete(false)
+                        }
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("DatabaseHelper", "Error finding ratings to update: ${exception.message}")
+                    onComplete(false)
                 }
         }
     }

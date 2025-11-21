@@ -33,7 +33,7 @@
                 android:layout_width="58dp"
                 android:layout_height="48dp"
                 android:scaleType="centerCrop"
-                android:src="@drawable/left_arrow" />
+                android:src="@drawable/outline_arrow_back_24" />
 
         </RelativeLayout>
 
@@ -261,21 +261,25 @@
 
         <LinearLayout
             android:id="@+id/ingredientsLayout"
-            android:layout_width="300dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="11dp"
             android:layout_marginTop="1dp"
+            android:layout_marginEnd="11dp"
             android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView14"></LinearLayout>
 
         <LinearLayout
             android:id="@+id/stepsLayout"
-            android:layout_width="300dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="11dp"
             android:layout_marginTop="1dp"
+            android:layout_marginEnd="11dp"
             android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView15"></LinearLayout>
 
