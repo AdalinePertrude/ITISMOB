@@ -104,8 +104,10 @@ class SavedRecipeViewHolder(
             .diskCacheStrategy(DiskCacheStrategy.ALL)
             .skipMemoryCache(false)
             .override(300, 300)
-            .fitCenter()
+            .centerCrop()
             .encodeQuality(70)
+            .placeholder(R.drawable.ic_recipe_placeholder)
+            .error(R.drawable.ic_recipe_error)
             .into(recipeImageIv)
     }
 

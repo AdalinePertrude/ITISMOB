@@ -30,8 +30,8 @@ class PublishedRecipeViewHolder(private val binding: PublishedLayoutBinding) : R
         // Load image using Glide - FIXED
         Glide.with(itemView.context)
             .load(recipe.imageId)
-            .placeholder(R.drawable.ic_launcher_background)
-            .error(R.drawable.ic_launcher_background)
+            .placeholder(R.drawable.ic_recipe_placeholder)
+            .error(R.drawable.ic_recipe_error)
             .into(recipeImageIv)
 
         // Set save button click listener

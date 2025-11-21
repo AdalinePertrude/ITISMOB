@@ -272,6 +272,8 @@ class ViewRecipeActivity : ComponentActivity() {
         // Load image with Glide
         Glide.with(this)
             .load(recipe.imageId)
+            .placeholder(R.drawable.ic_recipe_placeholder) // Add placeholder
+            .error(R.drawable.ic_recipe_error) // Add error image
             .into(findViewById(R.id.imageView2))
 
         // Safely handle ingredients and instructions

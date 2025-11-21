@@ -46,35 +46,33 @@ class EditProfileActivity : ComponentActivity() {
 
     private fun saveChanges() {
         val name = viewBinding.nameEtv.text.toString().trim()
-        val email = viewBinding.emailEtv.text.toString().trim()
         val oldPass = viewBinding.oldPassEtvp.text.toString().trim()
         val newPass = viewBinding.newPassEtvp.text.toString().trim()
         val confirmNewPass = viewBinding.confirmNewPassEtvp.text.toString().trim()
 
         val nameChanged = name != userName
-        val emailChanged = email != userEmail
         val passwordFieldsFilled = oldPass.isNotEmpty() || newPass.isNotEmpty() || confirmNewPass.isNotEmpty()
 
-        Log.d("DEBUG", "Name changed: $nameChanged, Email changed: $emailChanged, Password fields filled: $passwordFieldsFilled")
+        Log.d("DEBUG", "Name changed: $nameChanged, Password fields filled: $passwordFieldsFilled")
 
         when {
-            // Both name/email and password changes
-            (nameChanged || emailChanged) && passwordFieldsFilled -> {
+            // Both name and password changes
+            (nameChanged) && passwordFieldsFilled -> {
                 if (validatePasswordChange(oldPass, newPass, confirmNewPass)) {
-                    updateProfileAndPassword(name, email, oldPass, newPass)
+                    updateProfileAndPassword(name, oldPass, newPass)
                 }
             }
 
             // Only password change attempted
-            passwordFieldsFilled && !nameChanged && !emailChanged -> {
+            passwordFieldsFilled && !nameChanged -> {
                 if (validatePasswordChange(oldPass, newPass, confirmNewPass)) {
                     updatePasswordOnly(oldPass, newPass)
                 }
             }
 
-            // Only name/email changes
-            (nameChanged || emailChanged) && !passwordFieldsFilled -> {
-                updateProfileOnly(name, email)
+            // Only name changes
+            (nameChanged) && !passwordFieldsFilled -> {
+                updateProfileOnly(name)
             }
 
             else -> {
@@ -113,7 +111,7 @@ class EditProfileActivity : ComponentActivity() {
         }
     }
 
-    private fun updateProfileOnly(name: String, email: String) {
+    private fun updateProfileOnly(name: String) {
         if (userid.isNullOrEmpty()) {
             Toast.makeText(this, "User ID not found", Toast.LENGTH_SHORT).show()
             return
@@ -121,7 +119,7 @@ class EditProfileActivity : ComponentActivity() {
 
         val oldUsername = userName // Store the old username before updating
 
-        DatabaseHelper.updateUserInfo(userid!!, name, email) { success, errorMessage ->
+        DatabaseHelper.updateUserInfo(userid!!, name) { success, errorMessage ->
             runOnUiThread {
                 if (success) {
                     // Check if username actually changed
@@ -130,12 +128,12 @@ class EditProfileActivity : ComponentActivity() {
                         updateUsernameAcrossAllData(oldUsername!!, name) { updateSuccess, updateError ->
                             runOnUiThread {
                                 if (updateSuccess) {
-                                    editLoginState(name, email)
+                                    editLoginState(name)
                                     Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show()
                                     Log.d("EditProfile", "Username updated across all data successfully")
                                 } else {
                                     // Still update local state but show warning
-                                    editLoginState(name, email)
+                                    editLoginState(name)
                                     Toast.makeText(this,
                                         "Profile updated but some comments/ratings may show old username",
                                         Toast.LENGTH_LONG
@@ -146,8 +144,7 @@ class EditProfileActivity : ComponentActivity() {
                             }
                         }
                     } else {
-                        // Only email changed, no need to update comments/ratings
-                        editLoginState(name, email)
+                        editLoginState(name)
                         Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show()
                         checkIfChangesMade()
                         Log.d("EditProfile", "Only email updated, username unchanged")
@@ -167,7 +164,7 @@ class EditProfileActivity : ComponentActivity() {
             }
         }
     }
-    private fun updateProfileAndPassword(name: String, email: String, oldPass: String, newPass: String) {
+    private fun updateProfileAndPassword(name: String, oldPass: String, newPass: String) {
         if (userid.isNullOrEmpty()) {
             Toast.makeText(this, "User ID not found", Toast.LENGTH_SHORT).show()
             return
@@ -178,7 +175,7 @@ class EditProfileActivity : ComponentActivity() {
         DatabaseHelper.updateUserPassword(userid!!, oldPass, newPass) { success, errorMessage ->
             runOnUiThread {
                 if (success) {
-                    DatabaseHelper.updateUserInfo(userid!!, name, email) { profileSuccess, profileError ->
+                    DatabaseHelper.updateUserInfo(userid!!, name) { profileSuccess, profileError ->
                         runOnUiThread {
                             if (profileSuccess) {
                                 // Check if username changed
@@ -187,12 +184,12 @@ class EditProfileActivity : ComponentActivity() {
                                     updateUsernameAcrossAllData(oldUsername!!, name) { updateSuccess, updateError ->
                                         runOnUiThread {
                                             if (updateSuccess) {
-                                                editLoginState(name, email)
+                                                editLoginState(name)
                                                 Toast.makeText(this, "Profile and password updated successfully", Toast.LENGTH_SHORT).show()
                                                 Log.d("EditProfile", "Complete update successful")
                                             } else {
                                                 // Still update local state but show warning
-                                                editLoginState(name, email)
+                                                editLoginState(name)
                                                 Toast.makeText(this,
                                                     "Profile and password updated but some comments/ratings may show old username",
                                                     Toast.LENGTH_LONG
@@ -204,12 +201,11 @@ class EditProfileActivity : ComponentActivity() {
                                         }
                                     }
                                 } else {
-                                    // Only email changed, no need to update comments/ratings
-                                    editLoginState(name, email)
+                                    editLoginState(name)
                                     Toast.makeText(this, "Profile and password updated successfully", Toast.LENGTH_SHORT).show()
                                     clearPasswordFields()
                                     checkIfChangesMade()
-                                    Log.d("EditProfile", "Password and email updated, username unchanged")
+                                    Log.d("EditProfile", "Password updated, username unchanged")
                                 }
                             } else {
                                 Toast.makeText(this, "Password updated but profile update failed: ${profileError ?: "Unknown error"}", Toast.LENGTH_SHORT).show()
@@ -248,7 +244,6 @@ class EditProfileActivity : ComponentActivity() {
         }
 
         viewBinding.nameEtv.addTextChangedListener(textWatcher)
-        viewBinding.emailEtv.addTextChangedListener(textWatcher)
         viewBinding.oldPassEtvp.addTextChangedListener(textWatcher)
         viewBinding.newPassEtvp.addTextChangedListener(textWatcher)
         viewBinding.confirmNewPassEtvp.addTextChangedListener(textWatcher)
@@ -256,13 +251,11 @@ class EditProfileActivity : ComponentActivity() {
 
     private fun checkIfChangesMade() {
         val name = viewBinding.nameEtv.text.toString().trim()
-        val email = viewBinding.emailEtv.text.toString().trim()
         val oldPass = viewBinding.oldPassEtvp.text.toString().trim()
         val newPass = viewBinding.newPassEtvp.text.toString().trim()
         val confirmNewPass = viewBinding.confirmNewPassEtvp.text.toString().trim()
 
         val hasChanges = name != userName ||
-                email != userEmail ||
                 oldPass.isNotEmpty() ||
                 newPass.isNotEmpty() ||
                 confirmNewPass.isNotEmpty()
@@ -333,14 +326,10 @@ class EditProfileActivity : ComponentActivity() {
         }
     }
 
-    private fun editLoginState(userName: String? = null, userEmail: String? = null) {
+    private fun editLoginState(userName: String? = null) {
         val editor = sp.edit()
         userName?.let { editor.putString("userName", it) }
-        userEmail?.let { editor.putString("userEmail", it) }
         editor.apply()
-
-        // Update local variables
         this.userName = userName ?: this.userName
-        this.userEmail = userEmail ?: this.userEmail
     }
 }

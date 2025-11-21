@@ -12,4 +12,11 @@
     <color name="grey">#d8d8d8</color>
     <color name="black_semi_transparent">#80000000</color>
     <color name="gold">#DAA250</color>
+    <!-- Placeholder colors -->
+    <color name="placeholder_gray">#FFBDBDBD</color>
+    <color name="placeholder_light">#FFEEEEEE</color>
+
+    <!-- Error colors -->
+    <color name="error_red">#FFF44336</color>
+    <color name="error_light">#FFFFCDD2</color>
 </resources>

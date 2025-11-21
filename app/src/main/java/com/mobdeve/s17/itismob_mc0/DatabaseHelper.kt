@@ -271,12 +271,11 @@ class DatabaseHelper {
                 }
         }
 
-        fun updateUserInfo(userid: String, name: String, email: String, onComplete: (Boolean, String?) -> Unit) {
+        fun updateUserInfo(userid: String, name: String, onComplete: (Boolean, String?) -> Unit) {
             val db = Firebase.firestore
 
             val userInfo = mapOf<String, Any>(
                 "fullname" to name,
-                "email" to email,
                 "updatedAt" to FieldValue.serverTimestamp()
             )
 

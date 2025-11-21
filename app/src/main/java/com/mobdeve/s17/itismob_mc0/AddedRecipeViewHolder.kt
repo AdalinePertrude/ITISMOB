@@ -17,6 +17,8 @@ class AddedRecipeViewHolder (private val viewBinding: AddedRecipeToCalendarBindi
         Glide.with(viewBinding.root.context)
             .load(imageUrl)
             .centerCrop()
+            .placeholder(R.drawable.ic_recipe_placeholder)
+            .error(R.drawable.ic_recipe_error)
             .into(viewBinding.atcDishIv)
     }
 }
