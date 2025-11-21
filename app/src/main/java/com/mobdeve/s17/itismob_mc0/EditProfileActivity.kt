@@ -218,6 +218,8 @@ class EditProfileActivity : ComponentActivity() {
                     when {
                         errorMessage?.contains("incorrect", ignoreCase = true) == true -> {
                             viewBinding.oldPassEtvp.error = "Incorrect current password"
+                            Toast.makeText(this, "Incorrect current password", Toast.LENGTH_SHORT).show()
+
                         }
                         errorMessage?.contains("not found", ignoreCase = true) == true -> {
                             Toast.makeText(this, "User not found", Toast.LENGTH_SHORT).show()

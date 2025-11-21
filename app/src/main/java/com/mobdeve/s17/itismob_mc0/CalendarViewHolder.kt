@@ -4,7 +4,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-    fun interface OnItemListener {
+    interface OnItemListener {
         fun onItemClick(position: Int, dayText: String)
     }
 

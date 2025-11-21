@@ -73,10 +73,66 @@ class CalendarActivity : ComponentActivity(), OnItemListener {
     private fun setMonthView(){
         monthYear_tv.text = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(selectedDate.time)
         val daysInMonth = getDaysInMonth(selectedDate)
-        val calendarAdapter = CalendarAdapter(daysInMonth, this)
+
+        // Pass current month and current date to adapter
+        val calendarAdapter = CalendarAdapter(daysInMonth, this, selectedDate)
         val layoutManager = GridLayoutManager(applicationContext, 7)
         calendar_rv.layoutManager = layoutManager
         calendar_rv.adapter = calendarAdapter
+    }
+
+    override fun onItemClick(position: Int, dayText: String) {
+        val sp: SharedPreferences = getSharedPreferences(USER_PREFERENCE, MODE_PRIVATE)
+        val userid = sp.getString("userId", "").toString()
+
+        if (dayText.isNotEmpty() && !isDeleteMode) {
+            // Additional safety check - prevent clicking past dates
+            if (isPastDate(dayText)) {
+                Toast.makeText(this, "Cannot select past dates", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val formattedDate = formatDateForFirestore(dayText)
+            getAddedRecipeofSelectedDate(formattedDate, userid)
+            val message = "Selected Date: $dayText ${SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(selectedDate.time)}"
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            viewBinding.dailyPlannerLl.visibility = View.VISIBLE
+            viewBinding.plannerDateTv.text = " $dayText ${SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(selectedDate.time)}"
+            viewBinding.dailyPlannerAddBtn.setOnClickListener {
+                val intent = Intent(this, HomeActivity::class.java)
+                startActivity(intent)
+            }
+        }
+    }
+
+
+    // Helper function to check if a date is in the past
+    private fun isPastDate(dayText: String): Boolean {
+        if (dayText.isEmpty()) return false
+
+        try {
+            val cellDate = selectedDate.clone() as Calendar
+            cellDate.set(Calendar.DAY_OF_MONTH, dayText.toInt())
+
+            // Reset time parts for accurate comparison
+            val today = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+
+            cellDate.set(Calendar.HOUR_OF_DAY, 0)
+            cellDate.set(Calendar.MINUTE, 0)
+            cellDate.set(Calendar.SECOND, 0)
+            cellDate.set(Calendar.MILLISECOND, 0)
+
+            return cellDate.before(today)
+
+        } catch (e: Exception) {
+            Log.e("CalendarActivity", "Error checking past date", e)
+            return false
+        }
     }
 
     private fun getDaysInMonth(date: Calendar): ArrayList<String> {
@@ -110,25 +166,6 @@ class CalendarActivity : ComponentActivity(), OnItemListener {
 
         return daysInMonthArray
     }
-
-    override fun onItemClick(position: Int, dayText: String) {
-        val sp: SharedPreferences = getSharedPreferences(USER_PREFERENCE, MODE_PRIVATE)
-        val userid = sp.getString("userId", "").toString()
-
-        if (dayText.isNotEmpty() && !isDeleteMode) {
-            val formattedDate = formatDateForFirestore(dayText)
-            getAddedRecipeofSelectedDate(formattedDate, userid)
-            val message = "Selected Date: $dayText ${SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(selectedDate.time)}"
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-            viewBinding.dailyPlannerLl.visibility = View.VISIBLE
-            viewBinding.plannerDateTv.text = " $dayText ${SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(selectedDate.time)}"
-            viewBinding.dailyPlannerAddBtn.setOnClickListener {
-                val intent = Intent(this, HomeActivity::class.java)
-                startActivity(intent)
-            }
-        }
-    }
-
     //test if query works
     private fun testFirestoreQuery() {
         val sp: SharedPreferences = getSharedPreferences(USER_PREFERENCE, MODE_PRIVATE)
@@ -187,26 +224,6 @@ class CalendarActivity : ComponentActivity(), OnItemListener {
             addedRecipeData.clear()
             addedRecipeData.addAll(recipes)
             setAddedRecipe()
-        }
-    }
-
-
-    fun onItemLongClick(position: Int, dayText: String) {
-        if (dayText.isNotEmpty()) {
-            isDeleteMode = true
-            selectedItemPosition = position
-
-            // Start shake animation for calendar day
-            val holder = calendar_rv.findViewHolderForAdapterPosition(position)
-            holder?.itemView?.let { view ->
-                val shakeAnimation = AnimationUtils.loadAnimation(this, R.anim.shake_animation)
-                view.startAnimation(shakeAnimation)
-            }
-
-            // Show delete area
-            viewBinding.deleteArea.visibility = View.VISIBLE
-
-            Toast.makeText(this, "Drag to delete area to remove", Toast.LENGTH_SHORT).show()
         }
     }
 
