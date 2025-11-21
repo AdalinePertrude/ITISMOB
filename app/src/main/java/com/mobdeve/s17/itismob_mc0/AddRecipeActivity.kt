@@ -9,7 +9,6 @@ import android.widget.*
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.*
 import java.util.*
 
 class AddRecipeActivity : ComponentActivity() {
@@ -32,9 +31,8 @@ class AddRecipeActivity : ComponentActivity() {
     private val ingredientRows = mutableListOf<IngredientRow>()
     private val stepRows = mutableListOf<StepRow>()
 
-    private val edamamHelper = EdamamNutritionHelper()
+
     private var totalCalories = 0.0
-    private val firestore = FirebaseFirestore.getInstance()
 
     private val USER_PREFERENCE = "USER_PREFERENCE"
     private lateinit var sharedPreferences: android.content.SharedPreferences
@@ -94,7 +92,7 @@ class AddRecipeActivity : ComponentActivity() {
         val rowObj = IngredientRow(firstAuto, firstGrams, firstCals)
         ingredientRows.add(rowObj)
 
-//        setupAutoCompleteDynamic(firstAuto)
+
 
         firstGrams.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
@@ -163,45 +161,6 @@ class AddRecipeActivity : ComponentActivity() {
             updateTotalCalories()
         }
     }
-
-
-//    private fun setupAutoCompleteDynamic(auto: AutoCompleteTextView) {
-//        auto.addTextChangedListener(object : TextWatcher {
-//            override fun afterTextChanged(s: Editable?) {
-//                val q = s.toString().trim()
-//                if (q.isNotEmpty()) {
-//                    fetchIngredientSuggestions(q) { list ->
-//                        auto.setAdapter(
-//                            ArrayAdapter(
-//                                this@AddRecipeActivity,
-//                                android.R.layout.simple_dropdown_item_1line,
-//                                list
-//                            )
-//                        )
-//                        auto.showDropDown()
-//                    }
-//                }
-//            }
-//
-//            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-//            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-//        })
-//    }
-//
-//    private fun fetchIngredientSuggestions(query: String, onComplete: (List<String>) -> Unit) {
-//        firestore.collection("ingredients")
-//            .orderBy("name")
-//            .startAt(query)
-//            .endAt(query + "\uf8ff")
-//            .limit(10)
-//            .get()
-//            .addOnSuccessListener { snap ->
-//                val names = snap.documents.mapNotNull { it.getString("name") }
-//                onComplete(names)
-//            }.addOnFailureListener {
-//                onComplete(emptyList())
-//            }
-//    }
 
     private fun calculateCalories(row: IngredientRow) {
         updateTotalCalories()
@@ -308,7 +267,6 @@ class AddRecipeActivity : ComponentActivity() {
         val imageUrl = imageUri?.toString() ?: ""
 
         // Get user info from SharedPreferences
-        val userId = sharedPreferences.getString("userId", "Unknown") ?: "Unknown"
         val userName = sharedPreferences.getString("userName", "Unknown") ?: "Unknown"
 
         val recipe = RecipeModel(
