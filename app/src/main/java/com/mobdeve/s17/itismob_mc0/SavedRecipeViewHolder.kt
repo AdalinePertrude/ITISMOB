@@ -147,7 +147,7 @@ class SavedRecipeViewHolder(
                 Toast.makeText(binding.root.context, "${freshRecipe.label} removed from offline", Toast.LENGTH_SHORT).show()
                 SavedRecipeManager.removeSavedRecipe(recipe.id)
 
-                // Call the callback to notify adapter - THIS IS THE KEY CHANGE
+                // Call the callback to notify adapter
                 onRecipeUnsaved(recipe.id)
 
             } else {
@@ -161,9 +161,10 @@ class SavedRecipeViewHolder(
             Toast.makeText(binding.root.context, "Recipe not found", Toast.LENGTH_SHORT).show()
             recipe.isSaved = true
             updateSaveButtonUI(true)
+            // Even if recipe not found, still call the callback to remove from list
+            onRecipeUnsaved(recipe.id)
         }
     }
-
     private fun scheduleNotificationForRecipe(recipe: RecipeModel, year: Int, month: Int, day: Int) {
         try {
             // Create calendar instance for the scheduled date at 9:00 AM

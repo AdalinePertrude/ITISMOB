@@ -22,10 +22,16 @@ class ViewRecipeActivity : ComponentActivity() {
     private lateinit var notificationScheduler: NotificationScheduler
     private lateinit var currentRecipe: RecipeModel
     private lateinit var backPressedCallback: OnBackPressedCallback
+    private lateinit var recipeRepository: RecipeRepository
+    private var isRecipeSaved = false
+    private var isSaveInProgress = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_view_recipe)
+
+        // Initialize RecipeRepository
+        recipeRepository = RecipeRepository(this)
 
         // Set up back button handling with OnBackPressedDispatcher
         setupBackNavigation()
@@ -34,7 +40,6 @@ class ViewRecipeActivity : ComponentActivity() {
         val savedBtn: ImageButton = findViewById(R.id.savedRecBtn)
         val returnPageButton: ImageButton = findViewById(R.id.returnPageBtn)
         val viewCommentsButton: Button = findViewById(R.id.viewCommsBtn)
-        var ifClicked = false
         val userId = getSharedPreferences("USER_PREFERENCE", android.content.Context.MODE_PRIVATE).getString("userId", "")!!
         val recipeId = intent.getStringExtra("RECIPE_ID") ?: return
 
@@ -51,15 +56,15 @@ class ViewRecipeActivity : ComponentActivity() {
             handleBackNavigation()
         }
 
+        // Save button click listener with proper database integration
         savedBtn.setOnClickListener {
-            if(ifClicked) {
-                savedBtn.setImageResource(R.drawable.ic_saved)
-                savedBtn.setBackgroundResource(R.drawable.savedbtn_design)
+            if (::currentRecipe.isInitialized && !isSaveInProgress) {
+                toggleRecipeSaveState(savedBtn)
+            } else if (isSaveInProgress) {
+                Toast.makeText(this, "Save operation in progress...", Toast.LENGTH_SHORT).show()
             } else {
-                savedBtn.setImageResource(R.drawable.ic_save)
-                savedBtn.setBackgroundResource(R.drawable.savebtn_design)
+                Toast.makeText(this, "Recipe data not loaded yet", Toast.LENGTH_SHORT).show()
             }
-            ifClicked = !ifClicked
         }
 
         val starRating: RatingBar = findViewById(R.id.starsRb)
@@ -126,6 +131,97 @@ class ViewRecipeActivity : ComponentActivity() {
         }
     }
 
+    private fun toggleRecipeSaveState(savedBtn: ImageButton) {
+        isSaveInProgress = true
+        savedBtn.isEnabled = false
+
+        if (isRecipeSaved) {
+            // Unsave the recipe
+            unsaveRecipe(savedBtn)
+        } else {
+            // Save the recipe
+            saveRecipe(savedBtn)
+        }
+    }
+
+    private fun saveRecipe(savedBtn: ImageButton) {
+        Log.d("SAVE_RECIPE", "Attempting to save recipe: ${currentRecipe.label}")
+
+        recipeRepository.saveRecipeWithImage(currentRecipe) { success ->
+            runOnUiThread {
+                isSaveInProgress = false
+                savedBtn.isEnabled = true
+
+                if (success) {
+                    isRecipeSaved = true
+                    updateSaveButtonUI(savedBtn, true)
+                    Toast.makeText(this, "Recipe saved!", Toast.LENGTH_SHORT).show()
+                    Log.d("SAVE_RECIPE", "Recipe saved successfully: ${currentRecipe.label}")
+
+                    // Notify other components about the saved recipe
+                    notifyRecipeSaved()
+                } else {
+                    Toast.makeText(this, "Failed to save recipe", Toast.LENGTH_SHORT).show()
+                    Log.e("SAVE_RECIPE", "Failed to save recipe: ${currentRecipe.label}")
+                }
+            }
+        }
+    }
+
+    private fun unsaveRecipe(savedBtn: ImageButton) {
+        Log.d("SAVE_RECIPE", "Attempting to unsave recipe: ${currentRecipe.label}")
+
+        val deleteSuccess = recipeRepository.deleteRecipeById(currentRecipe.id)
+        runOnUiThread {
+            isSaveInProgress = false
+            savedBtn.isEnabled = true
+
+            if (deleteSuccess) {
+                isRecipeSaved = false
+                updateSaveButtonUI(savedBtn, false)
+                Toast.makeText(this, "Recipe removed from saved", Toast.LENGTH_SHORT).show()
+                Log.d("SAVE_RECIPE", "Recipe unsaved successfully: ${currentRecipe.label}")
+
+                // Notify other components about the unsaved recipe
+                notifyRecipeUnsaved()
+            } else {
+                Toast.makeText(this, "Failed to remove recipe", Toast.LENGTH_SHORT).show()
+                Log.e("SAVE_RECIPE", "Failed to unsave recipe: ${currentRecipe.label}")
+            }
+        }
+    }
+
+    private fun updateSaveButtonUI(savedBtn: ImageButton, isSaved: Boolean) {
+        if (isSaved) {
+            savedBtn.setImageResource(R.drawable.ic_saved)
+            savedBtn.setBackgroundResource(R.drawable.savedbtn_design)
+        } else {
+            savedBtn.setImageResource(R.drawable.ic_save)
+            savedBtn.setBackgroundResource(R.drawable.savebtn_design)
+        }
+    }
+
+    private fun checkIfRecipeIsSaved(recipeId: String, savedBtn: ImageButton) {
+        val isSaved = recipeRepository.recipeExists(recipeId)
+        runOnUiThread {
+            isRecipeSaved = isSaved
+            updateSaveButtonUI(savedBtn, isSaved)
+            Log.d("SAVE_RECIPE", "Recipe saved status: $isSaved for recipe: $recipeId")
+        }
+    }
+
+    private fun notifyRecipeSaved() {
+        // You can implement a broadcast or callback system here if needed
+        // For now, we'll just log it
+        Log.d("SAVE_RECIPE", "Notifying about saved recipe: ${currentRecipe.id}")
+    }
+
+    private fun notifyRecipeUnsaved() {
+        // You can implement a broadcast or callback system here if needed
+        // For now, we'll just log it
+        Log.d("SAVE_RECIPE", "Notifying about unsaved recipe: ${currentRecipe.id}")
+    }
+
     private fun setupBackNavigation() {
         backPressedCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -157,8 +253,13 @@ class ViewRecipeActivity : ComponentActivity() {
                 if (recipe != null) {
                     currentRecipe = recipe
                     updateUI(recipe)
+
+                    // Check if recipe is already saved and update UI accordingly
+                    val savedBtn: ImageButton = findViewById(R.id.savedRecBtn)
+                    checkIfRecipeIsSaved(recipeId, savedBtn)
                 } else {
                     Toast.makeText(this, "Recipe not found", Toast.LENGTH_SHORT).show()
+                    finish()
                 }
             }
         }
