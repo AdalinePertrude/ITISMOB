@@ -318,7 +318,12 @@ class ViewRecipeActivity : ComponentActivity() {
         findViewById<TextView>(R.id.servingTv)?.text = "Serves ${recipe.serving}"
         findViewById<TextView>(R.id.caloriesTv)?.text = "${recipe.calories} calories"
         findViewById<TextView>(R.id.ratingTv)?.text = recipe.rating.toString()
+
+
+        val cuisineText = recipe.cuisineType?.joinToString(", ") ?: "Cuisine"
+        findViewById<TextView>(R.id.cuisineTv)?.text = cuisineText
     }
+
 
     private fun scheduleNotificationForRecipe(recipe: RecipeModel, year: Int, month: Int, day: Int) {
         try {
