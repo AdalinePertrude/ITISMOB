@@ -10,18 +10,18 @@ object SavedRecipeManager {
     private val _savedRecipeIds = mutableSetOf<String>()
     private val listeners = mutableListOf<(Set<String>) -> Unit>()
 
-    fun initializeFromDatabase(dbHandler: SQLiteDatabaseHandler, context: Context) {
-        Thread {
-            val savedRecipes = dbHandler.getSavedRecipes()
-            val savedIds = savedRecipes.map { it.id }.toSet()
-            // Use the context to run on UI thread
-            (context as? Activity)?.runOnUiThread {
-                _savedRecipeIds.clear()
-                _savedRecipeIds.addAll(savedIds)
-                notifyListeners()
-            }
-        }.start()
-    }
+//    fun initializeFromDatabase(dbHandler: SQLiteDatabaseHandler, context: Context) {
+//        Thread {
+//            val savedRecipes = dbHandler.getSavedRecipes()
+//            val savedIds = savedRecipes.map { it.id }.toSet()
+//            // Use the context to run on UI thread
+//            (context as? Activity)?.runOnUiThread {
+//                _savedRecipeIds.clear()
+//                _savedRecipeIds.addAll(savedIds)
+//                notifyListeners()
+//            }
+//        }.start()
+//    }
 
 
     fun updateSavedRecipes(recipeIds: Set<String>) {
@@ -44,9 +44,9 @@ object SavedRecipeManager {
         return _savedRecipeIds.toSet()
     }
 
-    fun isRecipeSaved(recipeId: String): Boolean {
-        return _savedRecipeIds.contains(recipeId)
-    }
+//    fun isRecipeSaved(recipeId: String): Boolean {
+//        return _savedRecipeIds.contains(recipeId)
+//    }
 
     fun addListener(listener: (Set<String>) -> Unit) {
         listeners.add(listener)

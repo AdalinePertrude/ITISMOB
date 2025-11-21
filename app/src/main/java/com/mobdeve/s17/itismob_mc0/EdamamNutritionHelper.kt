@@ -21,21 +21,4 @@ class EdamamNutritionHelper {
             .create(EdamamApiService::class.java)
     }
 
-    // Returns calories for "grams g ingredientName"
-    suspend fun getCalories(ingredientName: String, grams: Double): Double {
-        val ingredientString = "${grams} g $ingredientName"
-
-        val request = NutritionRequest(
-            title = ingredientName,
-            ingr = listOf(ingredientString)
-        )
-
-        val response = api.analyzeNutrition(
-            APP_ID,
-            APP_KEY,
-            request
-        )
-
-        return response.calories ?: 0.0
-    }
 }

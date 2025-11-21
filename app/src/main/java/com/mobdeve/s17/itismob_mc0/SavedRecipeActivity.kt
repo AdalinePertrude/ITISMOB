@@ -4,9 +4,12 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.mobdeve.s17.itismob_mc0.databinding.SavedPageBinding
 
 class SavedRecipeActivity : ComponentActivity() {
@@ -17,14 +20,14 @@ class SavedRecipeActivity : ComponentActivity() {
     private lateinit var savedAdapter: SavedRecipeAdapter
     private val savedRecipeData: ArrayList<RecipeModel> = ArrayList()
 
-    private lateinit var recipeRepository: RecipeRepository // Use RecipeRepository instead of SQLiteDatabaseHandler
+    private lateinit var dbHandler: SQLiteDatabaseHandler
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = SavedPageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        recipeRepository = RecipeRepository(this) // Initialize RecipeRepository
+        dbHandler = SQLiteDatabaseHandler(this)
 
         setupRecyclerView()
         setupBackButton()
@@ -36,7 +39,7 @@ class SavedRecipeActivity : ComponentActivity() {
         savedAdapter = SavedRecipeAdapter(this, savedRecipeData)
 
         savedAdapter.setOnRecipeUnsavedListener { recipeId ->
-            // This is called when a recipe is unsaved via the save button
+            //  called when a recipe is unsaved via the save button
             removeRecipeFromList(recipeId)
         }
 
@@ -55,7 +58,7 @@ class SavedRecipeActivity : ComponentActivity() {
     }
 
     private fun removeRecipeFromList(recipeId: String) {
-        // Use the adapter's removeRecipe method to handle the removal and animation
+        //  adapter's removeRecipe method to handle the removal and animation
         savedAdapter.removeRecipe(recipeId)
 
         // Update UI state if list becomes empty
@@ -66,9 +69,8 @@ class SavedRecipeActivity : ComponentActivity() {
     }
 
     private fun updateSavedRecipesList(savedIds: Set<String>) {
-        // Use RecipeRepository instead of dbHandler
         Thread {
-            val allRecipes = recipeRepository.getAllRecipes()
+            val allRecipes = dbHandler.getSavedRecipes()
             val currentIds = allRecipes.map { it.id }.toSet()
 
             // If there's a mismatch, reload
@@ -82,8 +84,7 @@ class SavedRecipeActivity : ComponentActivity() {
 
     private fun loadSavedRecipes() {
         Thread {
-            // Use RecipeRepository to get all saved recipes
-            val recipes = recipeRepository.getAllRecipes()
+            val recipes = dbHandler.getSavedRecipes()
 
             runOnUiThread {
                 savedRecipeData.clear()
@@ -93,11 +94,9 @@ class SavedRecipeActivity : ComponentActivity() {
                 if (savedRecipeData.isEmpty()) {
                     binding.noSavedText.visibility = View.VISIBLE
                     binding.savedRecipesRv.visibility = View.GONE
-                    Log.d("SavedRecipeActivity", "No saved recipes found")
                 } else {
                     binding.noSavedText.visibility = View.GONE
                     binding.savedRecipesRv.visibility = View.VISIBLE
-                    Log.d("SavedRecipeActivity", "Loaded ${savedRecipeData.size} saved recipes")
                 }
             }
         }.start()
