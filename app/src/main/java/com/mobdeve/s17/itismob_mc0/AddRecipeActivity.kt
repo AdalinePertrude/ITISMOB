@@ -83,21 +83,18 @@ class AddRecipeActivity : ComponentActivity() {
             ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, cuisines)
     }
 
-    // ---------------------------------------------------------------------------------------------
-    // INGREDIENTS
-    // ---------------------------------------------------------------------------------------------
 
     private fun setupIngredientButtons() {
         val firstRow = ingredientContainer.findViewById<LinearLayout>(R.id.ingredientRow1)
         val firstAuto = firstRow.findViewById<AutoCompleteTextView>(R.id.ingredientAutoComplete1)
         val firstGrams = firstRow.findViewById<EditText>(R.id.ingredientGrams1)
-        val firstCals = firstRow.findViewById<TextView>(R.id.ingredientCals1)
+        val firstCals = firstRow.findViewById<EditText>(R.id.ingredientCals1)
         val firstRemove = firstRow.findViewById<ImageButton>(R.id.removeIngredientBtn1)
 
         val rowObj = IngredientRow(firstAuto, firstGrams, firstCals)
         ingredientRows.add(rowObj)
 
-        setupAutoCompleteDynamic(firstAuto)
+//        setupAutoCompleteDynamic(firstAuto)
 
         firstGrams.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
@@ -131,8 +128,12 @@ class AddRecipeActivity : ComponentActivity() {
         grams.inputType = android.text.InputType.TYPE_CLASS_NUMBER or
                 android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
 
-        val cals = TextView(this)
-        cals.text = "0 kcal"
+
+        val cals = EditText(this)
+        cals.layoutParams = LinearLayout.LayoutParams(150, LinearLayout.LayoutParams.WRAP_CONTENT)
+        cals.hint = "0 kcal"
+        cals.inputType = android.text.InputType.TYPE_CLASS_NUMBER or
+                android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
 
         val remove = ImageButton(this)
         remove.setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
@@ -146,8 +147,6 @@ class AddRecipeActivity : ComponentActivity() {
 
         val rowObj = IngredientRow(auto, grams, cals)
         ingredientRows.add(rowObj)
-
-        setupAutoCompleteDynamic(auto)
 
         grams.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
@@ -165,63 +164,47 @@ class AddRecipeActivity : ComponentActivity() {
         }
     }
 
-    private fun setupAutoCompleteDynamic(auto: AutoCompleteTextView) {
-        auto.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                val q = s.toString().trim()
-                if (q.isNotEmpty()) {
-                    fetchIngredientSuggestions(q) { list ->
-                        auto.setAdapter(
-                            ArrayAdapter(
-                                this@AddRecipeActivity,
-                                android.R.layout.simple_dropdown_item_1line,
-                                list
-                            )
-                        )
-                        auto.showDropDown()
-                    }
-                }
-            }
 
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-    }
-
-    private fun fetchIngredientSuggestions(query: String, onComplete: (List<String>) -> Unit) {
-        firestore.collection("ingredients")
-            .orderBy("name")
-            .startAt(query)
-            .endAt(query + "\uf8ff")
-            .limit(10)
-            .get()
-            .addOnSuccessListener { snap ->
-                val names = snap.documents.mapNotNull { it.getString("name") }
-                onComplete(names)
-            }.addOnFailureListener {
-                onComplete(emptyList())
-            }
-    }
+//    private fun setupAutoCompleteDynamic(auto: AutoCompleteTextView) {
+//        auto.addTextChangedListener(object : TextWatcher {
+//            override fun afterTextChanged(s: Editable?) {
+//                val q = s.toString().trim()
+//                if (q.isNotEmpty()) {
+//                    fetchIngredientSuggestions(q) { list ->
+//                        auto.setAdapter(
+//                            ArrayAdapter(
+//                                this@AddRecipeActivity,
+//                                android.R.layout.simple_dropdown_item_1line,
+//                                list
+//                            )
+//                        )
+//                        auto.showDropDown()
+//                    }
+//                }
+//            }
+//
+//            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+//            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+//        })
+//    }
+//
+//    private fun fetchIngredientSuggestions(query: String, onComplete: (List<String>) -> Unit) {
+//        firestore.collection("ingredients")
+//            .orderBy("name")
+//            .startAt(query)
+//            .endAt(query + "\uf8ff")
+//            .limit(10)
+//            .get()
+//            .addOnSuccessListener { snap ->
+//                val names = snap.documents.mapNotNull { it.getString("name") }
+//                onComplete(names)
+//            }.addOnFailureListener {
+//                onComplete(emptyList())
+//            }
+//    }
 
     private fun calculateCalories(row: IngredientRow) {
-        val name = row.name.text.toString()
-        val grams = row.grams.text.toString().toDoubleOrNull() ?: 0.0
-
-        if (name.isEmpty() || grams <= 0) {
-            row.calories.text = "0 kcal"
-            updateTotalCalories()
-            return
-        }
-
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val cal = edamamHelper.getCalories(name, grams)
-                withContext(Dispatchers.Main) {
-                    row.calories.text = "${cal.toInt()} kcal"
-                    updateTotalCalories()
-                }
-            } catch (e: Exception) { e.printStackTrace() }
-        }
+        updateTotalCalories()
     }
 
     private fun updateTotalCalories() {
@@ -231,9 +214,6 @@ class AddRecipeActivity : ComponentActivity() {
         totalCalsValue.text = "${totalCalories.toInt()} kcal"
     }
 
-    // ---------------------------------------------------------------------------------------------
-    // STEPS
-    // ---------------------------------------------------------------------------------------------
 
     private fun setupStepButtons() {
         val firstRow = stepContainer.getChildAt(0) as LinearLayout
@@ -297,10 +277,6 @@ class AddRecipeActivity : ComponentActivity() {
         }
         return true
     }
-
-    // ---------------------------------------------------------------------------------------------
-    // IMAGE + PUBLISH
-    // ---------------------------------------------------------------------------------------------
 
     private fun setupImageButton() {
         selectImageBtn.setOnClickListener { pickImageLauncher.launch("image/*") }
@@ -368,7 +344,7 @@ class AddRecipeActivity : ComponentActivity() {
     }
 }
 
-// DATA STRUCTS
-data class IngredientRow(val name: AutoCompleteTextView, val grams: EditText, val calories: TextView)
+
+data class IngredientRow(val name: AutoCompleteTextView, val grams: EditText, val calories: EditText)
 data class StepRow(val step: EditText, val numberView: TextView)
 
