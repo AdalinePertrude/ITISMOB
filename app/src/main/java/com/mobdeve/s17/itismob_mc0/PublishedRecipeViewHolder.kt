@@ -14,7 +14,6 @@ class PublishedRecipeViewHolder(private val binding: PublishedLayoutBinding) : R
     private val recipeNameTv: TextView = itemView.findViewById(R.id.pub_recipe_name_tv)
     private val timeServingTv: TextView = itemView.findViewById(R.id.pub_recipe_time_serving_tv)
     private val ratingTv: TextView = itemView.findViewById(R.id.pub_recipe_rating_tv)
-    private val saveBtnIb: ImageButton = itemView.findViewById(R.id.pub_recipe_save_btn)
 
     fun bindData(recipe: RecipeModel) {
         // Set dish name
@@ -33,18 +32,5 @@ class PublishedRecipeViewHolder(private val binding: PublishedLayoutBinding) : R
             .placeholder(R.drawable.ic_recipe_placeholder)
             .error(R.drawable.ic_recipe_error)
             .into(recipeImageIv)
-
-        // Set save button click listener
-        saveBtnIb.setOnClickListener {
-            if (saveBtnIb.isSelected) {
-                saveBtnIb.isSelected = false
-                saveBtnIb.setBackgroundResource(R.drawable.savebtn_design)
-                saveBtnIb.setImageResource(R.drawable.ic_save)
-            } else {
-                saveBtnIb.isSelected = true
-                saveBtnIb.setBackgroundResource(R.drawable.savedbtn_design)
-                saveBtnIb.setImageResource(R.drawable.ic_saved)
-            }
-        }
     }
 }
