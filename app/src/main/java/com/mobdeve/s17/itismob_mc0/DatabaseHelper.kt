@@ -240,7 +240,7 @@ class DatabaseHelper {
                 }
         }
 
-         fun loadUserRating(recipeId: String, userId: String, ratingBar: RatingBar) {
+        fun loadUserRating(recipeId: String, userId: String, ratingBar: RatingBar) {
             val db = Firebase.firestore
 
             db.collection("recipes")
@@ -253,6 +253,24 @@ class DatabaseHelper {
                         val rating = doc.getDouble("rating")?.toFloat() ?: 0f
                         ratingBar.rating= rating
                     }
+                }
+        }
+
+        fun countRecipeRatings(recipeId: String, onComplete: (Int) -> Unit) {
+            val db = Firebase.firestore
+
+            db.collection("recipes")
+                .document(recipeId)
+                .collection("ratings")
+                .get()
+                .addOnSuccessListener { documents ->
+                    val ratingCount = documents.size()
+                    //println("DEBUG: Recipe $recipeId has $ratingCount ratings")
+                    onComplete(ratingCount)
+                }
+                .addOnFailureListener { exception ->
+                    println("Error counting ratings: ${exception.message}")
+                    onComplete(0)
                 }
         }
 

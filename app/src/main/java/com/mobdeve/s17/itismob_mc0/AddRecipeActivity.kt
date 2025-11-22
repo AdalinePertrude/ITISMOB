@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.View
 import android.widget.*
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
@@ -42,6 +43,7 @@ class AddRecipeActivity : ComponentActivity() {
             uri?.let {
                 imageUri = it
                 recipeImageView.setImageURI(it)
+                selectImageBtn.visibility = View.INVISIBLE
             }
         }
 

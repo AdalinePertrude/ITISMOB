@@ -24,7 +24,14 @@ class PublishedRecipeViewHolder(private val binding: PublishedLayoutBinding) : R
         timeServingTv.text = timeServing
 
         // Set rating
-        ratingTv.text = String.format("%.1f / 5.0", recipe.rating)
+        DatabaseHelper.countRecipeRatings(recipe.id) { count ->
+            // Update UI with rating count
+            if(count == 0) {
+                ratingTv.text = "---"
+            }else{
+                ratingTv.text = String.format("%.1f / 5.0", recipe.rating)
+            }
+        }
 
         // Load image using Glide - FIXED
         Glide.with(itemView.context)

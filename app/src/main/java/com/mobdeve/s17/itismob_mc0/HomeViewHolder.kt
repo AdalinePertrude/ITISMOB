@@ -64,9 +64,17 @@ class HomeViewHolder(private var viewBinding: HpRecipeCardLayoutBinding) : Recyc
     }
 
     fun getRating(recipeId: String) {
-        DatabaseHelper.fetchRecipeRating(recipeId) { rating ->
-            viewBinding.hpRatingTv.text = "$rating / 5.0"
+        DatabaseHelper.countRecipeRatings(recipeId) { count ->
+            // Update UI with rating count
+            if(count == 0) {
+                viewBinding.hpRatingTv.text = "---"
+            }else{
+                DatabaseHelper.fetchRecipeRating(recipeId) { rating ->
+                    viewBinding.hpRatingTv.text = "$rating / 5.0"
+                }
+            }
         }
+
     }
 
     private fun checkIfSaved(recipeId: String, callback: (Boolean) -> Unit) {

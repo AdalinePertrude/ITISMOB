@@ -42,7 +42,15 @@ class SavedRecipeViewHolder(
         recipeNameTv.text = recipe.label
         authorTv.text = recipe.author
         timeServingTv.text = "${recipe.prepTime} mins | Serving for ${recipe.serving}"
-        ratingTv.text = String.format("%.1f / 5.0", recipe.rating)
+
+        DatabaseHelper.countRecipeRatings(recipe.id) { count ->
+            // Update UI with rating count
+            if(count == 0) {
+                ratingTv.text = "---"
+            }else{
+                ratingTv.text = String.format("%.1f / 5.0", recipe.rating)
+            }
+        }
         loadImage(recipe.imageId)
 
         checkIfSaved(recipe.id) { isSaved ->
