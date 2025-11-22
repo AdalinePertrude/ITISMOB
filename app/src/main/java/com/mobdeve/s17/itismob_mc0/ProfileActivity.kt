@@ -13,22 +13,27 @@ import androidx.activity.enableEdgeToEdge
 
 class ProfileActivity : ComponentActivity() {
     private val USER_PREFERENCE = "USER_PREFERENCE"
+    private lateinit var fullName: TextView
+    private lateinit var email: TextView
+    private lateinit var sp: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_profile)
+
+        // Initialize views
         val editProfile : ImageButton = findViewById(R.id.editProfile)
-        val fullName: TextView = findViewById(R.id.fNameProfileTv)
-        val email: TextView = findViewById(R.id.emailProfileTv)
+        fullName = findViewById(R.id.fNameProfileTv)
+        email = findViewById(R.id.emailProfileTv)
         val savedRecipes: Button = findViewById(R.id.savedRecsBtn)
         val publishedRecipes: Button = findViewById(R.id.publishedRecsBtn)
         val backHome: Button = findViewById(R.id.backHomeBtn)
         val logout: Button = findViewById(R.id.logoutBtn)
-        val sp: SharedPreferences = getSharedPreferences(USER_PREFERENCE, MODE_PRIVATE)
+        sp = getSharedPreferences(USER_PREFERENCE, MODE_PRIVATE)
 
-        fullName.text = sp.getString("userName", "")
-        email.text = sp.getString("userEmail", "")
+        // Load initial data
+        loadUserData()
 
         logout.setOnClickListener {
             logoutUser()
@@ -43,7 +48,6 @@ class ProfileActivity : ComponentActivity() {
             startActivity(intent)
         }
 
-
         publishedRecipes.setOnClickListener {
             val intent = Intent(this, PublishedRecipeActivity::class.java)
             startActivity(intent)
@@ -53,8 +57,17 @@ class ProfileActivity : ComponentActivity() {
             val intent = Intent(this, SavedRecipeActivity::class.java)
             startActivity(intent)
         }
+    }
 
+    override fun onResume() {
+        super.onResume()
+        // Refresh data when activity resumes
+        loadUserData()
+    }
 
+    private fun loadUserData() {
+        fullName.text = sp.getString("userName", "")
+        email.text = sp.getString("userEmail", "")
     }
 
     private fun logoutUser() {
@@ -70,7 +83,6 @@ class ProfileActivity : ComponentActivity() {
     }
 
     private fun performLogout() {
-        val sp: SharedPreferences = getSharedPreferences(USER_PREFERENCE, MODE_PRIVATE)
         val editor = sp.edit()
         editor.clear()
         editor.apply()
