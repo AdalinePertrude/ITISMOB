@@ -5,7 +5,7 @@
     android:id="@+id/loginConstraint"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFF8DC">
+    android:background="#FFFFFF">
 
     <ImageView
         android:id="@+id/logoIv2"
@@ -16,20 +16,25 @@
         android:scaleType="fitCenter"
         android:src="@drawable/logo"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.518"
         app:layout_constraintStart_toStartOf="parent"
-        tools:layout_editor_absoluteY="2dp" />
+        tools:layout_editor_absoluteY="42dp" />
 
     <EditText
         android:id="@+id/password_loginEt"
-        android:layout_width="300dp"
+        android:layout_width="0dp"
         android:layout_height="50dp"
-        android:layout_marginStart="48dp"
+        android:layout_marginStart="20dp"
         android:layout_marginTop="12dp"
-        android:background="@drawable/edit_text_field"
+        android:layout_marginEnd="20dp"
+        android:background="@drawable/edittext_selector"
         android:drawablePadding="8dp"
+        android:ems="10"
+        android:inputType="text|textPassword"
         android:padding="8dp"
         android:textColor="@color/black"
         android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/password_loginTv" />
 
@@ -37,8 +42,8 @@
         android:id="@+id/password_loginTv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="48dp"
-        android:layout_marginTop="50dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="16dp"
         android:text="Password"
         android:textColor="#5D4037"
         android:textSize="20sp"
@@ -60,26 +65,29 @@
         android:id="@+id/signupTv"
         android:layout_width="95dp"
         android:layout_height="50dp"
-        android:layout_marginTop="121dp"
+        android:layout_marginTop="30dp"
         android:text="Login"
         android:textColor="#5D4037"
-        android:textSize="35sp"
+        android:textSize="34sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/logoIv2" />
 
     <EditText
         android:id="@+id/email_loginEt"
-        android:layout_width="300dp"
+        android:layout_width="0dp"
         android:layout_height="50dp"
-        android:layout_marginStart="48dp"
+        android:layout_marginStart="20dp"
         android:layout_marginTop="12dp"
-        android:background="@drawable/edit_text_field"
+        android:layout_marginEnd="20dp"
+        android:background="@drawable/edittext_selector"
         android:drawablePadding="8dp"
+        android:ems="10"
         android:padding="8dp"
         android:textColor="@color/black"
         android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/email_loginTv" />
 
@@ -97,8 +105,8 @@
         android:id="@+id/email_loginTv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="48dp"
-        android:layout_marginTop="72dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="44dp"
         android:text="Email"
         android:textColor="#5D4037"
         android:textSize="20sp"
@@ -108,14 +116,17 @@
 
     <Button
         android:id="@+id/loginBtn"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="161dp"
-        android:layout_marginTop="90dp"
-        android:background="@drawable/app_button"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="60dp"
+        android:layout_marginEnd="20dp"
+        android:background="@drawable/edit_profile_btn_bg"
         android:text="LOGIN"
         android:textColor="#FFFFFF"
+        android:textSize="16sp"
         android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/password_loginEt" />
 
@@ -128,6 +139,7 @@
         android:clickable="true"
         android:text="@string/signup_underline"
         android:textColor="#5D4037"
+        android:textSize="16sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/loginBtn" />
 

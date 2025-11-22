@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#9AF6F5F5"
+    android:background="#FFFFFF"
     tools:context=".ViewRecipeActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -32,6 +32,7 @@
                 android:id="@+id/returnPageBtn"
                 android:layout_width="58dp"
                 android:layout_height="48dp"
+                android:background="#FFFFFF"
                 android:scaleType="centerCrop"
                 android:src="@drawable/outline_arrow_back_24" />
 
@@ -66,10 +67,10 @@
         <LinearLayout
             android:id="@+id/ratingLayout"
             android:layout_width="91dp"
-            android:layout_height="19dp"
+            android:layout_height="25dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
-            android:background="#8B4513"
+            android:background="#DAA520"
             android:orientation="horizontal"
             app:layout_constraintStart_toEndOf="@+id/recipeNameTv"
             app:layout_constraintTop_toBottomOf="@+id/recipeDisplayLayout">
@@ -82,7 +83,7 @@
                 android:gravity="center"
                 android:text="Rating"
                 android:textColor="#FFFFFF"
-                android:textSize="12sp"
+                android:textSize="18sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -112,7 +113,7 @@
             android:id="@+id/textView5"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="3dp"
+            android:layout_marginStart="5dp"
             android:layout_marginTop="13dp"
             android:text="|"
             android:textSize="12sp"
@@ -123,12 +124,12 @@
             android:id="@+id/servingTv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="21dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="13dp"
             android:text="Serving"
             android:textSize="12sp"
             app:layout_constraintStart_toEndOf="@+id/textView5"
-            app:layout_constraintTop_toBottomOf="@+id/ratingLayout" />
+            app:layout_constraintTop_toBottomOf="@+id/recipeNameTv" />
 
         <TextView
             android:id="@+id/textView7"
@@ -146,19 +147,19 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="3dp"
-            android:layout_marginTop="11dp"
+            android:layout_marginTop="10dp"
             android:text="Cuisine"
             android:textSize="12sp"
             android:textStyle="bold"
             app:layout_constraintStart_toEndOf="@+id/textView7"
-            app:layout_constraintTop_toBottomOf="@+id/authorTv" />
+            app:layout_constraintTop_toBottomOf="@+id/textView3" />
 
         <TextView
             android:id="@+id/textView9"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="3dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="8dp"
             android:text="|"
             app:layout_constraintStart_toEndOf="@+id/cuisineTv"
             app:layout_constraintTop_toBottomOf="@+id/servingTv" />
@@ -230,6 +231,7 @@
             android:layout_marginTop="205dp"
             android:text="Tap to Rate"
             android:textColor="#000000"
+            android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/stepsLayout" />
@@ -251,7 +253,7 @@
             android:id="@+id/starsRb"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="76dp"
+            android:layout_marginStart="65dp"
             android:layout_marginTop="195dp"
             android:isIndicator="false"
             android:numStars="5"
