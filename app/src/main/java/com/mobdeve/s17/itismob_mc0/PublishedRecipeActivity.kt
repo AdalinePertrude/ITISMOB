@@ -5,33 +5,35 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageButton
-import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.mobdeve.s17.itismob_mc0.databinding.PublishedPageBinding
 import androidx.recyclerview.widget.ItemTouchHelper
+import com.mobdeve.s17.itismob_mc0.databinding.PublishedPageBinding
 
 class PublishedRecipeActivity : ComponentActivity() {
     private lateinit var viewBinding: PublishedPageBinding
     private lateinit var publishedRecipesRv: RecyclerView
     private val publishedRecipeData: ArrayList<RecipeModel> = ArrayList()
     private lateinit var publishedAdapter: PublishedRecipeAdapter
+
     private val USER_PREFERENCE = "USER_PREFERENCE"
     private lateinit var sp: SharedPreferences
-    private var userId: String? = null
+
+    private var username: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewBinding = PublishedPageBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
-        // Get user ID from SharedPreferences
+        // Get username instead of userId
         sp = getSharedPreferences(USER_PREFERENCE, MODE_PRIVATE)
-        userId = sp.getString("userId", null)
+        username = sp.getString("username", null)
 
         setupRecyclerView()
         setupBackButton()
+
         val itemTouchHelper = ItemTouchHelper(object :
             ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
 
@@ -45,7 +47,6 @@ class PublishedRecipeActivity : ComponentActivity() {
                 val position = viewHolder.adapterPosition
                 val recipeToDelete = publishedRecipeData[position]
 
-                // Delete from Firebase
                 DatabaseHelper.deleteRecipe(recipeToDelete.id) { success ->
                     if (success) {
                         publishedRecipeData.removeAt(position)
@@ -56,7 +57,7 @@ class PublishedRecipeActivity : ComponentActivity() {
                             viewBinding.recipesRv.visibility = View.GONE
                         }
                     } else {
-                        publishedAdapter.notifyItemChanged(position) // rollback if failure
+                        publishedAdapter.notifyItemChanged(position)
                     }
                 }
             }
@@ -80,21 +81,20 @@ class PublishedRecipeActivity : ComponentActivity() {
         }
     }
 
-
     private fun loadPublishedRecipes() {
-        if (userId.isNullOrEmpty()) {
+        if (username.isNullOrEmpty()) {
             viewBinding.noRecipesText.visibility = View.VISIBLE
             viewBinding.recipesRv.visibility = View.GONE
             return
         }
 
-        DatabaseHelper.fetchRecipesByAuthor(userId!!) { recipes ->
+
+        DatabaseHelper.fetchRecipesByAuthor(username!!) { recipes ->
             runOnUiThread {
                 publishedRecipeData.clear()
                 publishedRecipeData.addAll(recipes.filter { it.isPublished })
                 publishedAdapter.notifyDataSetChanged()
 
-                // Show/hide empty state
                 if (publishedRecipeData.isEmpty()) {
                     viewBinding.noRecipesText.visibility = View.VISIBLE
                     viewBinding.recipesRv.visibility = View.GONE
