@@ -406,24 +406,11 @@ class HomeActivity : ComponentActivity() {
         Log.d("DatabaseDebug", "=== END DATABASE DEBUG ===")
     }
 
-//    override fun onResume() {
-//        super.onResume()
-//
-//        // Get saved recipes from local DB
-//        val savedRecipes = dbHandler.getSavedRecipes()
-//        val savedIds = savedRecipes.map { it.id }
-//
-//        // Update recipeData to reflect which recipes are saved
-//        recipeData.forEach { recipe ->
-//            recipe.isSaved = savedIds.contains(recipe.id)
-//        }
-//
-//        // Update RecyclerView with new data
-//        (recipeRv.adapter as? HomeAdapter)?.updateData(ArrayList(recipeData))
-//    }
     override fun onResume() {
         super.onResume()
+        loadDataFromFirebase()
         refreshSavedStatus()
+        viewBinding.recipesRv.adapter?.notifyDataSetChanged()
     }
 
     private fun refreshSavedStatus() {
