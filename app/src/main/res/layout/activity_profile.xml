@@ -11,8 +11,11 @@
         android:id="@+id/profileCl"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="24dp"
-        android:background="@color/white"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/edit_text_field"
         app:layout_constraintBottom_toTopOf="@+id/divider1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
@@ -113,69 +116,140 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <!-- Action Buttons Container -->
     <View
         android:id="@+id/divider1"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
+        android:layout_marginBottom="141dp"
         android:background="#BDBDBD"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/profileCl" />
-
-    <Button
-        android:id="@+id/savedRecsBtn"
-        android:layout_width="178dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="23dp"
-        android:layout_marginTop="35dp"
-        android:background="@drawable/app_button"
-        android:text="Saved Recipes >"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/profileCl" />
-
-    <Button
-        android:id="@+id/publishedRecsBtn"
-        android:layout_width="178dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="22dp"
-        android:layout_marginTop="25dp"
-        android:background="@drawable/app_button"
-        android:text="Published Recipes >"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/savedRecsBtn" />
-
-    <Button
-        android:id="@+id/backHomeBtn"
-        android:layout_width="150dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="23dp"
-        android:layout_marginTop="25dp"
-        android:background="@drawable/app_button"
-        android:text="Back to Home >"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/publishedRecsBtn" />
-
-    <Button
-        android:id="@+id/logoutBtn"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="392dp"
-        android:background="@drawable/app_button"
-        android:text="LOGOUT"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/actionsContainer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/profileCl"
-        app:layout_constraintVertical_bias="0.799" />
+        app:layout_constraintTop_toBottomOf="@+id/profileCl" />
+
+
+    <LinearLayout
+        android:id="@+id/actionsContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="20dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/divider1">
+
+        <!-- Saved Recipes Button -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:elevation="6dp"
+            app:cardElevation="6dp"
+            app:cardMaxElevation="8dp"
+            app:cardUseCompatPadding="true"
+            app:cardBackgroundColor="@android:color/white"
+            app:cardCornerRadius="12dp">
+
+            <Button
+                android:id="@+id/savedRecsBtn"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="?android:attr/selectableItemBackground"
+                android:gravity="center"
+                android:text="Saved Recipes"
+                android:textAllCaps="false"
+                android:textColor="#5D4037"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Published Recipes Button -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:elevation="6dp"
+            app:cardElevation="6dp"
+            app:cardMaxElevation="8dp"
+            app:cardUseCompatPadding="true"
+            app:cardBackgroundColor="@android:color/white"
+            app:cardCornerRadius="12dp">
+
+            <Button
+                android:id="@+id/publishedRecsBtn"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="?android:attr/selectableItemBackground"
+                android:gravity="center"
+                android:text="Published Recipes"
+                android:textAllCaps="false"
+                android:textColor="#5D4037"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Back to Home Button -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:elevation="6dp"
+            app:cardElevation="6dp"
+            app:cardMaxElevation="8dp"
+            app:cardUseCompatPadding="true"
+            app:cardBackgroundColor="@android:color/white"
+            app:cardCornerRadius="12dp">
+
+            <Button
+                android:id="@+id/backHomeBtn"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="?android:attr/selectableItemBackground"
+                android:gravity="center"
+                android:text="Back to Home"
+                android:textAllCaps="false"
+                android:textColor="#5D4037"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/logoutCard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="58dp"
+        android:elevation="4dp"
+        app:cardBackgroundColor="#FF5252"
+        app:cardCornerRadius="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <Button
+            android:id="@+id/logoutBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/gold"
+            android:text="LOGOUT"
+            android:textAllCaps="true"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+    </androidx.cardview.widget.CardView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

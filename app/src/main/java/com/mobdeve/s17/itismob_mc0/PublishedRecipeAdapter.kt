@@ -37,7 +37,8 @@ class PublishedRecipeAdapter(private val data: ArrayList<RecipeModel>) : Adapter
         return data.size
     }
 
-    fun updateData(newRecipesList: ArrayList<RecipeModel>) {
+    fun updateData(newRecipesList: ArrayList<RecipeModel>)
+    {
         data.clear()
         data.addAll(newRecipesList)
         notifyDataSetChanged()

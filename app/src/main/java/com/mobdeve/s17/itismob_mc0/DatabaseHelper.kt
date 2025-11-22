@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.RatingBar
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
@@ -355,66 +356,142 @@ class DatabaseHelper {
             }
         }
 
-        fun fetchRecipesByAuthor(author: String, callback: (List<RecipeModel>) -> Unit) {
+        fun fetchRecipesOfAuthor(userId: String, callback: (List<RecipeModel>) -> Unit) {
             val db = Firebase.firestore
-            db.collection("recipes")
-                .whereEqualTo("author", author)
+
+            db.collection("users")
+                .document(userId)
+                .collection("Published Recipes")
                 .get()
                 .addOnSuccessListener { documents ->
-                    val recipes = mutableListOf<RecipeModel>()
-                    for (document in documents) {
-                        val recipe = document.toObject(RecipeModel::class.java)
-                        recipes.add(recipe)
+                    val recipeIds = documents.map { it.id }
+
+                    if (recipeIds.isEmpty()) {
+                        callback(emptyList())
+                        return@addOnSuccessListener
                     }
-                    callback(recipes)
+
+                    // Fetch full recipe data from recipes collection
+                    db.collection("recipes")
+                        .whereIn(FieldPath.documentId(), recipeIds)
+                        .get()
+                        .addOnSuccessListener { recipeDocuments ->
+                            val recipeList = ArrayList<RecipeModel>()
+
+                            // First, get all recipes without ratings
+                            for (document in recipeDocuments) {
+                                val recipe = RecipeModel(
+                                    id = document.getString("id") ?: "",
+                                    author = document.getString("author") ?: "",
+                                    calories = document.getLong("calories")?.toInt() ?: 0,
+                                    cautions = document.get("cautions") as? List<String> ?: emptyList(),
+                                    createdAt = document.getTimestamp("createdAt")?.toDate().toString() ?: "",
+                                    cuisineType = document.get("cuisineType") as? List<String> ?: emptyList(),
+                                    dietLabels = document.get("dietLabels") as? List<String> ?: emptyList(),
+                                    dishType = document.get("dishType") as? List<String> ?: emptyList(),
+                                    healthLabels = document.get("healthLabels") as? List<String> ?: emptyList(),
+                                    imageId = document.getString("image") ?: "",
+                                    ingredients = document.get("ingredientLines") as? List<String> ?: emptyList(),
+                                    instructions = document.get("instructions") as? List<String> ?: emptyList(),
+                                    label = document.getString("label") ?: "",
+                                    mealType = document.get("mealType") as? List<String> ?: emptyList(),
+                                    prepTime = document.getLong("preptime")?.toInt() ?: 0,
+                                    rating = 0.0, // Temporary, will be updated
+                                    serving = document.getLong("yield")?.toInt() ?: 0,
+                                    isPublished = document.getBoolean("isPublished") ?: false,
+                                    isSaved = document.getBoolean("isSaved") ?: false,
+                                    description = document.getString("description") ?: ""
+                                )
+                                recipeList.add(recipe)
+                            }
+
+                            // Now fetch ratings for each recipe
+                            val recipesWithRatings = ArrayList<RecipeModel>()
+                            var completedCount = 0
+
+                            if (recipeList.isEmpty()) {
+                                callback(recipesWithRatings)
+                                return@addOnSuccessListener
+                            }
+
+                            recipeList.forEach { recipe ->
+                                fetchRecipeRating(recipe.id) { averageRating ->
+                                    val updatedRecipe = recipe.copy(rating = averageRating)
+                                    recipesWithRatings.add(updatedRecipe)
+                                    completedCount++
+
+                                    if (completedCount == recipeList.size) {
+                                        println("DEBUG: Fetched ${recipesWithRatings.size} recipes by author with real-time ratings")
+                                        callback(recipesWithRatings)
+                                    }
+                                }
+                            }
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e("DatabaseHelper", "Error fetching full recipe data", exception)
+                            callback(emptyList())
+                        }
                 }
                 .addOnFailureListener { exception ->
-                    Log.e("DatabaseHelper", "Error fetching recipes by author", exception)
+                    Log.e("DatabaseHelper", "Error fetching user's published recipes", exception)
                     callback(emptyList())
                 }
         }
-
-
-        fun addRecipe(recipe: RecipeModel, onComplete: (Boolean) -> Unit) {
+        fun addRecipe(recipe: RecipeModel, userId: String, onComplete: (Boolean) -> Unit) {
             val db = Firebase.firestore
+
+            if (userId.isNullOrEmpty()) {
+                Log.e("DB", "User ID is null or empty")
+                onComplete(false)
+                return
+            }
 
             val recipeData = hashMapOf(
                 "id" to recipe.id,
                 "author" to recipe.author,
-                "authorid" to recipe.author,
-
                 "calories" to recipe.calories,
                 "cautions" to recipe.cautions,
-
-
                 "createdAt" to FieldValue.serverTimestamp(),
-
                 "cuisineType" to recipe.cuisineType,
                 "dietLabels" to recipe.dietLabels,
                 "dishType" to recipe.dishType,
                 "healthLabels" to recipe.healthLabels,
-
                 "image" to recipe.imageId,
                 "ingredientLines" to recipe.ingredients,
                 "instructions" to recipe.instructions,
-
                 "label" to recipe.label,
                 "mealType" to recipe.mealType,
                 "preptime" to recipe.prepTime,
-
                 "rating" to recipe.rating,
                 "yield" to recipe.serving,
-
                 "isPublished" to recipe.isPublished,
                 "isSaved" to recipe.isSaved,
                 "description" to recipe.description
             )
 
-            db.collection("recipes")
+            // Batch write to ensure both operations succeed or fail together
+            val batch = db.batch()
+
+            // Add to recipes collection
+            val recipeRef = db.collection("recipes").document(recipe.id)
+            batch.set(recipeRef, recipeData)
+
+            val userRecipeRef = db.collection("users")
+                .document(userId)
+                .collection("Published Recipes")
                 .document(recipe.id)
-                .set(recipeData)
+
+            val userRecipeData = hashMapOf(
+                "recipeId" to recipe.id,
+                "addedAt" to FieldValue.serverTimestamp()
+            )
+
+            batch.set(userRecipeRef, userRecipeData)
+
+            // Commit the batch
+            batch.commit()
                 .addOnSuccessListener {
-                    Log.d("DB", "Recipe successfully added!")
+                    Log.d("DB", "Recipe successfully added to both collections!")
                     onComplete(true)
                 }
                 .addOnFailureListener { e ->
@@ -423,14 +500,33 @@ class DatabaseHelper {
                 }
         }
 
-        fun deleteRecipe(recipeId: String, onComplete: (Boolean) -> Unit) {
+        fun deleteRecipe(recipeId: String, userId: String?, onComplete: (Boolean) -> Unit) {
             val db = Firebase.firestore
 
-            db.collection("recipes")
+            if (userId.isNullOrEmpty()) {
+                Log.e("DB", "User ID is null or empty, cannot delete from user's collection")
+                onComplete(false)
+                return
+            }
+
+            // Batch write to ensure both deletions succeed or fail together
+            val batch = db.batch()
+
+            // Delete from recipes collection
+            val recipeRef = db.collection("recipes").document(recipeId)
+            batch.delete(recipeRef)
+
+            // Delete from user's PublishedRecipes collection
+            val userRecipeRef = db.collection("users")
+                .document(userId)
+                .collection("Published Recipes")
                 .document(recipeId)
-                .delete()
+            batch.delete(userRecipeRef)
+
+            // Commit the batch
+            batch.commit()
                 .addOnSuccessListener {
-                    Log.d("DB", "Recipe successfully deleted")
+                    Log.d("DB", "Recipe successfully deleted from both collections!")
                     onComplete(true)
                 }
                 .addOnFailureListener { e ->
@@ -438,7 +534,6 @@ class DatabaseHelper {
                     onComplete(false)
                 }
         }
-
         fun getAddedToCalendarRecipes(selectedDay: String, userid: String, onComplete: (ArrayList<RecipeModel>) -> Unit) {
             val db = Firebase.firestore
 

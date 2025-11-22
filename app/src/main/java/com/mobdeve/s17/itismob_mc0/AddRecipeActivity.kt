@@ -1,6 +1,7 @@
 package com.mobdeve.s17.itismob_mc0
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
@@ -35,7 +36,6 @@ class AddRecipeActivity : ComponentActivity() {
     private var totalCalories = 0.0
 
     private val USER_PREFERENCE = "USER_PREFERENCE"
-    private lateinit var sharedPreferences: android.content.SharedPreferences
 
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -48,8 +48,6 @@ class AddRecipeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.publish_recipe)
-
-        sharedPreferences = getSharedPreferences(USER_PREFERENCE, Context.MODE_PRIVATE)
 
         bindViews()
         setupCuisineSpinner()
@@ -290,7 +288,9 @@ class AddRecipeActivity : ComponentActivity() {
         val imageUrl = imageUri?.toString() ?: ""
 
         // Get user info from SharedPreferences
-        val userName = sharedPreferences.getString("userName", "Unknown") ?: "Unknown"
+        val sp: SharedPreferences = getSharedPreferences(USER_PREFERENCE, MODE_PRIVATE)
+        val userName = sp.getString("userName", "") ?: ""
+        val userId = sp.getString("userId", "") ?: ""
 
         val recipe = RecipeModel(
             id = id,
@@ -314,7 +314,7 @@ class AddRecipeActivity : ComponentActivity() {
             description = description
         )
 
-        DatabaseHelper.addRecipe(recipe) { success ->
+        DatabaseHelper.addRecipe(recipe, userId ) { success ->
             if (success) {
                 Toast.makeText(this, "Recipe published!", Toast.LENGTH_SHORT).show()
                 finish()

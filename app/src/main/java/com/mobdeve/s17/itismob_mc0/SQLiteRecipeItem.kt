@@ -3,7 +3,7 @@ package com.mobdeve.s17.itismob_mc0
 class SQLiteRecipeItem(
     var id: Int = -1,
     val recipeId: String = "",
-    val author: String = "",
+    val author: String? = null, // Change to nullable
     val calories: Int = 0,
     val createdAt: String = "",
     val imageId: String = "",
@@ -18,11 +18,11 @@ class SQLiteRecipeItem(
         private const val DEFAULT_ID = -1
     }
 
-    //constructor for creating from RecipeModel
+    // Constructor for creating from RecipeModel
     constructor(recipe: RecipeModel) : this(
         id = DEFAULT_ID,
         recipeId = recipe.id,
-        author = recipe.author,
+        author = recipe.author, // Now this accepts String?
         calories = recipe.calories,
         createdAt = recipe.createdAt,
         imageId = recipe.imageId,
@@ -38,7 +38,7 @@ class SQLiteRecipeItem(
     constructor() : this(
         id = DEFAULT_ID,
         recipeId = "",
-        author = "",
+        author = null, // Change to null
         calories = 0,
         createdAt = "",
         imageId = "",
@@ -63,7 +63,7 @@ class SQLiteRecipeItem(
     ): RecipeModel {
         return RecipeModel(
             id = this.recipeId,
-            author = this.author,
+            author = this.author, // Now this returns String?
             calories = this.calories,
             cautions = cautions,
             createdAt = this.createdAt,

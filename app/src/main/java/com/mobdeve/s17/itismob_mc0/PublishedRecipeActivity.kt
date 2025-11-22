@@ -20,16 +20,15 @@ class PublishedRecipeActivity : ComponentActivity() {
     private val USER_PREFERENCE = "USER_PREFERENCE"
     private lateinit var sp: SharedPreferences
 
-    private var username: String? = null
+    private var userId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewBinding = PublishedPageBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
-        // Get username instead of userId
         sp = getSharedPreferences(USER_PREFERENCE, MODE_PRIVATE)
-        username = sp.getString("username", null)
+        userId = sp.getString("userId", "")
 
         setupRecyclerView()
         setupBackButton()
@@ -47,7 +46,7 @@ class PublishedRecipeActivity : ComponentActivity() {
                 val position = viewHolder.adapterPosition
                 val recipeToDelete = publishedRecipeData[position]
 
-                DatabaseHelper.deleteRecipe(recipeToDelete.id) { success ->
+                DatabaseHelper.deleteRecipe(recipeToDelete.id, userId) { success ->
                     if (success) {
                         publishedRecipeData.removeAt(position)
                         publishedAdapter.notifyItemRemoved(position)
@@ -82,14 +81,14 @@ class PublishedRecipeActivity : ComponentActivity() {
     }
 
     private fun loadPublishedRecipes() {
-        if (username.isNullOrEmpty()) {
+        if (userId.isNullOrEmpty()) {
             viewBinding.noRecipesText.visibility = View.VISIBLE
             viewBinding.recipesRv.visibility = View.GONE
             return
         }
 
 
-        DatabaseHelper.fetchRecipesByAuthor(username!!) { recipes ->
+        DatabaseHelper.fetchRecipesOfAuthor(userId!!) { recipes ->
             runOnUiThread {
                 publishedRecipeData.clear()
                 publishedRecipeData.addAll(recipes.filter { it.isPublished })
