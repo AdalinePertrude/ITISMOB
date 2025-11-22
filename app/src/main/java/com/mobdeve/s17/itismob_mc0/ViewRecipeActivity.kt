@@ -276,6 +276,9 @@ class ViewRecipeActivity : ComponentActivity() {
             .error(R.drawable.ic_recipe_error) // Add error image
             .into(findViewById(R.id.imageView2))
 
+        val descriptionTv: TextView = findViewById(R.id.descriptionTv)
+        descriptionTv.text = recipe.description ?: ""
+
         // Safely handle ingredients and instructions
         val ingredientsArray = recipe.ingredients?.let {
             if (it is ArrayList<*>) it as ArrayList<String> else ArrayList(it)
