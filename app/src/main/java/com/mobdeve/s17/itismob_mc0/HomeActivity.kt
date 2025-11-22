@@ -11,6 +11,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.ProgressBar
 import android.widget.SearchView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -41,11 +42,16 @@ class HomeActivity : ComponentActivity() {
 
     private lateinit var dbHandler: SQLiteDatabaseHandler
 
+    private lateinit var loadingProgressBar: ProgressBar
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         dbHandler = SQLiteDatabaseHandler(this)
         viewBinding = HomePageBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
+
+        loadingProgressBar = viewBinding.loadingProgressBar
+
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
         setupBackPressedHandler()
         setupSpinner()
@@ -54,12 +60,23 @@ class HomeActivity : ComponentActivity() {
         setupSearchView()
         setupFAB()
         setupNavBar()
+        showLoading()
         loadDataFromFirebase() // Load data from Firebase after UI setup
         debugDatabaseContent()
         loadInitialSavedRecipes()
 
         SavedRecipeManager.addListener(savedRecipeListener)
 
+    }
+
+    private fun showLoading() {
+        loadingProgressBar.visibility = View.VISIBLE
+        viewBinding.recipesRv.visibility = View.GONE
+        viewBinding.noResultsTv.visibility = View.GONE
+    }
+
+    private fun hideLoading() {
+        loadingProgressBar.visibility = View.GONE
     }
 
     private fun loadInitialSavedRecipes() {
@@ -88,6 +105,7 @@ class HomeActivity : ComponentActivity() {
 
 
     private fun loadDataFromFirebase() {
+        showLoading()
         DatabaseHelper.fetchRecipeData { dishesList ->
             Thread {
                 // Get saved recipes from local DB
@@ -112,6 +130,7 @@ class HomeActivity : ComponentActivity() {
                         if (dishesList.isEmpty()) View.VISIBLE else View.GONE
                     viewBinding.recipesRv.visibility =
                         if (dishesList.isEmpty()) View.GONE else View.VISIBLE
+                    hideLoading()
                 }
             }.start()
         }
