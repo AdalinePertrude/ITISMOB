@@ -245,8 +245,31 @@ class AddRecipeActivity : ComponentActivity() {
         publishBtn.setOnClickListener { publishRecipe() }
     }
 
-    private fun publishRecipe() {
 
+    private fun validateIngredients(): Boolean {
+        if (ingredientRows.isEmpty()) {
+            Toast.makeText(this, "Please add at least one ingredient", Toast.LENGTH_SHORT).show()
+            return false
+        }
+
+        ingredientRows.forEachIndexed { index, row ->
+            val name = row.name.text.toString().trim()
+            val grams = row.grams.text.toString().trim()
+            if (name.isEmpty() || grams.isEmpty()) {
+                Toast.makeText(
+                    this,
+                    "Please complete Ingredient ${index + 1}",
+                    Toast.LENGTH_SHORT
+                ).show()
+                row.name.requestFocus()
+                return false
+            }
+        }
+
+        return true
+    }
+    private fun publishRecipe() {
+        if (!validateIngredients()) return
         if (!validateSteps()) return
 
         val id = UUID.randomUUID().toString()
