@@ -355,10 +355,10 @@ class DatabaseHelper {
             }
         }
 
-        fun fetchRecipesByAuthor(authorId: String, callback: (List<RecipeModel>) -> Unit) {
+        fun fetchRecipesByAuthor(author: String, callback: (List<RecipeModel>) -> Unit) {
             val db = Firebase.firestore
             db.collection("recipes")
-                .whereEqualTo("authorId", authorId)
+                .whereEqualTo("author", author)
                 .get()
                 .addOnSuccessListener { documents ->
                     val recipes = mutableListOf<RecipeModel>()
@@ -373,6 +373,7 @@ class DatabaseHelper {
                     callback(emptyList())
                 }
         }
+
 
         fun addRecipe(recipe: RecipeModel, onComplete: (Boolean) -> Unit) {
             val db = Firebase.firestore
