@@ -11,7 +11,9 @@
         android:id="@+id/profileCl"
         android:layout_width="match_parent"
         android:layout_height="198dp"
-        android:background="@color/gold"
+        android:layout_marginTop="24dp"
+        android:background="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -20,6 +22,7 @@
             android:id="@+id/imageView3"
             android:layout_width="115dp"
             android:layout_height="115dp"
+            android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:background="@drawable/circle_background"
             android:padding="8dp"
@@ -27,6 +30,7 @@
             android:src="@drawable/ic_profile"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/fnameHolderTv"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.506" />
 
@@ -76,8 +80,8 @@
             android:id="@+id/emailProfileTv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="30dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="28dp"
             android:layout_marginBottom="54dp"
             android:text="example@google.com"
             android:textColor="#5D4037"
@@ -89,12 +93,9 @@
 
         <ImageButton
             android:id="@+id/editProfile"
-            android:layout_width="59dp"
-            android:layout_height="51dp"
-            android:layout_marginTop="7dp"
-            android:layout_marginEnd="3dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="@color/gold"
-            android:scaleType="fitCenter"
             android:src="@drawable/edit_profile"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -142,14 +143,17 @@
 
     <Button
         android:id="@+id/logoutBtn"
-        android:layout_width="159dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="124dp"
         android:layout_marginTop="392dp"
         android:background="@drawable/app_button"
         android:text="LOGOUT"
         android:textColor="#FFFFFF"
         android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/profileCl" />
+        app:layout_constraintTop_toBottomOf="@+id/profileCl"
+        app:layout_constraintVertical_bias="0.799" />
 </androidx.constraintlayout.widget.ConstraintLayout>
