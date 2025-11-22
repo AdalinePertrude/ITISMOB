@@ -8,136 +8,119 @@
     tools:context=".ProfileActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/profileCl"
-        android:layout_width="match_parent"
+        android:id="@+id/profileCard"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="24dp"
-        android:background="@drawable/edit_text_field"
-        app:layout_constraintBottom_toTopOf="@+id/divider1"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="48dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/card_background"
+        android:padding="20dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-
+        <!-- Profile Image -->
         <ImageView
-            android:id="@+id/imageView3"
-            android:layout_width="115dp"
-            android:layout_height="115dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
+            android:id="@+id/profileImage"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:background="@drawable/circle_background"
-            android:padding="8dp"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_profile"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/fnameHolderTv"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.506" />
-
-        <TextView
-            android:id="@+id/fnameHolderTv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="148dp"
-            android:layout_marginTop="68dp"
-            android:text="Full Name:"
-            android:textColor="#5D4037"
-            android:textSize="18sp"
-            android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/fNameProfileTv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="68dp"
-            android:text="usernameholder"
-            android:textColor="#5D4037"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            app:layout_constraintStart_toEndOf="@+id/fnameHolderTv"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/emailHolderTv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="148dp"
-            android:layout_marginTop="28dp"
-            android:layout_marginBottom="54dp"
-            android:text="Email:"
-            android:textColor="#5D4037"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/fnameHolderTv"
-            app:layout_constraintVertical_bias="1.0" />
-
-        <TextView
-            android:id="@+id/emailProfileTv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="28dp"
-            android:layout_marginBottom="54dp"
-            android:text="example@google.com"
-            android:textColor="#5D4037"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/emailHolderTv"
-            app:layout_constraintTop_toBottomOf="@+id/fNameProfileTv" />
-
+        <!-- Edit Button -->
         <ImageButton
             android:id="@+id/editProfile"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_marginEnd="8dp"
-            android:background="@android:color/transparent"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/round_button_background"
             android:contentDescription="Edit Profile"
             android:padding="8dp"
             android:scaleType="centerInside"
             android:src="@drawable/edit_profile"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="1.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.033" />
+            app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- Name Section -->
+        <TextView
+            android:id="@+id/nameLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:text="Full Name"
+            android:textColor="#666"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toStartOf="@+id/editProfile"
+            app:layout_constraintStart_toEndOf="@+id/profileImage"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/fNameProfileTv"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:text="John Doe"
+            android:textColor="#333"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/editProfile"
+            app:layout_constraintStart_toEndOf="@+id/profileImage"
+            app:layout_constraintTop_toBottomOf="@+id/nameLabel" />
+
+        <!-- Email Section -->
+        <TextView
+            android:id="@+id/emailLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:text="Email"
+            android:textColor="#666"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toStartOf="@+id/editProfile"
+            app:layout_constraintStart_toEndOf="@+id/profileImage"
+            app:layout_constraintTop_toBottomOf="@+id/fNameProfileTv" />
+
+        <TextView
+            android:id="@+id/emailProfileTv"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:text="john.doe@example.com"
+            android:textColor="#333"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/editProfile"
+            app:layout_constraintStart_toEndOf="@+id/profileImage"
+            app:layout_constraintTop_toBottomOf="@+id/emailLabel" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Action Buttons Container -->
     <View
         android:id="@+id/divider1"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginStart="20dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="20dp"
-        android:layout_marginBottom="141dp"
         android:background="#BDBDBD"
-        app:layout_constraintBottom_toTopOf="@+id/actionsContainer"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/profileCl" />
-
+        app:layout_constraintTop_toBottomOf="@+id/profileCard" />
 
     <LinearLayout
         android:id="@+id/actionsContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="40dp"
         android:layout_marginEnd="20dp"
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
@@ -151,11 +134,11 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:elevation="6dp"
+            app:cardBackgroundColor="@android:color/white"
+            app:cardCornerRadius="12dp"
             app:cardElevation="6dp"
             app:cardMaxElevation="8dp"
-            app:cardUseCompatPadding="true"
-            app:cardBackgroundColor="@android:color/white"
-            app:cardCornerRadius="12dp">
+            app:cardUseCompatPadding="true">
 
             <Button
                 android:id="@+id/savedRecsBtn"
@@ -177,11 +160,11 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:elevation="6dp"
+            app:cardBackgroundColor="@android:color/white"
+            app:cardCornerRadius="12dp"
             app:cardElevation="6dp"
             app:cardMaxElevation="8dp"
-            app:cardUseCompatPadding="true"
-            app:cardBackgroundColor="@android:color/white"
-            app:cardCornerRadius="12dp">
+            app:cardUseCompatPadding="true">
 
             <Button
                 android:id="@+id/publishedRecsBtn"
@@ -203,11 +186,11 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:elevation="6dp"
+            app:cardBackgroundColor="@android:color/white"
+            app:cardCornerRadius="12dp"
             app:cardElevation="6dp"
             app:cardMaxElevation="8dp"
-            app:cardUseCompatPadding="true"
-            app:cardBackgroundColor="@android:color/white"
-            app:cardCornerRadius="12dp">
+            app:cardUseCompatPadding="true">
 
             <Button
                 android:id="@+id/backHomeBtn"
@@ -231,7 +214,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
-        android:layout_marginBottom="78dp"
+        android:layout_marginBottom="98dp"
         android:elevation="4dp"
         app:cardBackgroundColor="#FF5252"
         app:cardCornerRadius="8dp"
