@@ -259,7 +259,8 @@ class AddRecipeActivity : ComponentActivity() {
         ingredientRows.forEachIndexed { index, row ->
             val name = row.name.text.toString().trim()
             val grams = row.grams.text.toString().trim()
-            if (name.isEmpty() || grams.isEmpty()) {
+	        val cals = row.cals.text.toString().trim()
+            if (name.isEmpty() || grams.isEmpty() || cals.isEmpty()) {
                 Toast.makeText(
                     this,
                     "Please complete Ingredient ${index + 1}",
@@ -334,4 +335,5 @@ class AddRecipeActivity : ComponentActivity() {
 
 data class IngredientRow(val name: AutoCompleteTextView, val grams: EditText, val calories: EditText)
 data class StepRow(val step: EditText, val numberView: TextView)
+
 
