@@ -321,7 +321,7 @@ class CalendarActivity : ComponentActivity(), OnItemListener {
                 DatabaseHelper.deleteRecipeFromCalendar(userid, recipeId, year, month, day) { success ->
                     runOnUiThread {
                         if (success) {
-                            Toast.makeText(this, "Recipe removed", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "Recipe successfully removed", Toast.LENGTH_SHORT).show()
                         } else {
                             // If Firebase deletion fails, add the recipe back to local data
                             Log.e("CalendarActivity", "Firebase deletion failed, restoring recipe")
@@ -461,7 +461,7 @@ class CalendarActivity : ComponentActivity(), OnItemListener {
                     if (!wasDropped && isDeleteMode) {
                         // Item was dragged but not dropped in delete area - cancel delete mode
                         resetDeleteMode()
-                        Toast.makeText(this@CalendarActivity, "Drag cancelled", Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(this@CalendarActivity, "Drag cancelled", Toast.LENGTH_SHORT).show()
                     }
                     return true
                 }

@@ -27,6 +27,7 @@ class AddRecipeActivity : ComponentActivity() {
     private lateinit var totalCalsValue: TextView
     private lateinit var stepContainer: LinearLayout
     private lateinit var addStepBtn: ImageButton
+    private lateinit var changeImageBtn : ImageButton
     private lateinit var publishBtn: Button
 
     private var imageUri: Uri? = null
@@ -43,8 +44,8 @@ class AddRecipeActivity : ComponentActivity() {
             uri?.let {
                 imageUri = it
                 recipeImageView.setImageURI(it)
-                selectImageBtn.visibility = View.INVISIBLE
-            }
+                selectImageBtn.visibility = View.GONE
+                changeImageBtn.visibility = View.VISIBLE            }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,6 +74,8 @@ class AddRecipeActivity : ComponentActivity() {
         stepContainer = findViewById(R.id.stepInputContainer)
         addStepBtn = findViewById(R.id.addStepBtn)
         publishBtn = findViewById(R.id.publishBtn)
+        changeImageBtn = findViewById(R.id.changeImageBtn)
+
     }
 
     private fun setupCuisineSpinner() {
@@ -239,6 +242,7 @@ class AddRecipeActivity : ComponentActivity() {
 
     private fun setupImageButton() {
         selectImageBtn.setOnClickListener { pickImageLauncher.launch("image/*") }
+        changeImageBtn.setOnClickListener { pickImageLauncher.launch("image/*") }
     }
 
     private fun setupPublishButton() {
